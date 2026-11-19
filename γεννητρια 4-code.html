@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SvZone.eu • NATO, Κωδικοί Q, CW & Μορς</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      padding: 12px;
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 940px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+    }
+    .top {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 16px 20px;
+      border-bottom: 3px solid #ea580c;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .top h1 { font-size: 1.15rem; }
+    .tag {
+      background: #ea580c;
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: bold;
+    }
+    .nav {
+      display: flex;
+      background: #f8fafc;
+      border-bottom: 1px solid #cbd5e1;
+      overflow-x: auto;
+    }
+    .tab-b {
+      flex: 1;
+      min-width: 135px;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      font-size: 0.92rem;
+      font-weight: bold;
+      color: #475569;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-b.active {
+      color: #ea580c;
+      background: #ffffff;
+      border-bottom-color: #ea580c;
+    }
+    .section { display: none; padding: 18px; }
+    .section.active { display: block; }
+    .sub-bar {
+      display: inline-flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 8px;
+    }
+    .mode-b {
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.86rem;
+      font-weight: bold;
+      color: #475569;
+      cursor: pointer;
+    }
+    .mode-b.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 12px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 7px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #0f172a;
+    }
+    .btn {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 7px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-orange { background: #ea580c; color: #ffffff; }
+    .btn-orange:hover { background: #c2410c; }
+    .btn-gray { background: #e2e8f0; color: #1e293b; }
+    .btn-gray:hover { background: #cbd5e1; }
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px;
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      border-radius: 8px;
+      min-height: 70px;
+      align-items: center;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-top: 3px solid #ea580c;
+      border-radius: 6px;
+      padding: 7px 11px;
+      text-align: center;
+      min-width: 68px;
+    }
+    .card .ch { display: block; font-size: 1.2rem; font-weight: bold; color: #0f172a; }
+    .card .val { display: block; font-size: 0.82rem; font-weight: bold; color: #ea580c; }
+    .morse-screen {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 14px;
+      border-radius: 8px;
+      font-family: "Courier New", monospace;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+      word-break: break-word;
+      min-height: 48px;
+    }
+    .grid-ref {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .ref-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 6px 9px;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .ref-box strong { color: #0f172a; }
+    .ref-box span { color: #ea580c; font-weight: bold; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      border: 1px solid #cbd5e1;
+    }
+    th {
+      background: #f1f5f9;
+      color: #0f172a;
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    .pill {
+      display: inline-block;
+      background: #fff7ed;
+      color: #ea580c;
+      border: 1px solid #fed7aa;
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-weight: bold;
+      font-family: "Courier New", monospace;
+    }
+    .sub-title {
+      font-size: 0.95rem;
+      font-weight: bold;
+      margin-top: 16px;
+      margin-bottom: 6px;
+      color: #0f172a;
+    }
+    .quiz-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .quiz-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #475569;
+      margin-bottom: 10px;
+    }
+    .quiz-q {
+      font-size: 1.08rem;
+      font-weight: bold;
+      color: #0f172a;
+      margin-bottom: 12px;
+    }
+    .opt-list { display: flex; flex-direction: column; gap: 8px; }
+    .opt-b {
+      text-align: left;
+      padding: 10px 12px;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 7px;
+      font-size: 0.92rem;
+      color: #1e293b;
+      cursor: pointer;
+    }
+    .opt-b:hover:not(:disabled) { border-color: #ea580c; background: #fff7ed; }
+    .opt-b.ok { background: #dcfce7; border-color: #16a34a; color: #14532d; font-weight: bold; }
+    .opt-b.bad { background: #fee2e2; border-color: #dc2626; color: #7f1d1d; }
+    .quiz-msg { margin-top: 12px; font-weight: bold; min-height: 22px; }
+    .foot {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #64748b;
+      padding: 10px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Εργαλείο Ραδιοερασιτέχνη: NATO, Κωδικοί Q, CW & Μορς</h1>
+    <span class="tag">SvZone.eu</span>
+  </div>
+
+  <div class="nav">
+    <button type="button" class="tab-b active" data-tab="nato">1. Φωνητικό NATO</button>
+    <button type="button" class="tab-b" data-tab="q">2. Κωδικοί Q</button>
+    <button type="button" class="tab-b" data-tab="cw">3. Συντομογραφίες CW</button>
+    <button type="button" class="tab-b" data-tab="morse">4. Κώδικας Μορς</button>
+  </div>
+
+  <div id="tab-nato" class="section active">
+    <div class="sub-bar">
+      <button type="button" class="mode-b active" data-sec="nato" data-mode="ref">Γεννήτρια & Πίνακας</button>
+      <button type="button" class="mode-b" data-sec="nato" data-mode="quiz">Τεστ 10 Ερωτήσεων</button>
+    </div>
+    <div id="v-nato-ref">
+      <div class="row">
+        <input type="text" id="nato-in" value="SV1ABC" placeholder="Γράψε callsign (π.χ. SV1ABC)..." />
+        <button type="button" class="btn btn-orange" id="nato-rand">Τυχαίο Callsign</button>
+        <button type="button" class="btn btn-gray" id="nato-clear">Καθαρισμός</button>
+      </div>
+      <div id="nato-cards" class="cards"></div>
+      <div class="sub-title">Πλήρης Πίνακας NATO</div>
+      <div id="nato-ref" class="grid-ref"></div>
+    </div>
+    <div id="v-nato-quiz" style="display:none;"></div>
+  </div>
+
+  <div id="tab-q" class="section">
+    <div class="sub-bar">
+      <button type="button" class="mode-b active" data-sec="q" data-mode="ref">Πίνακας & Αναζήτηση</button>
+      <button type="button" class="mode-b" data-sec="q" data-mode="quiz">Τεστ 10 Ερωτήσεων</button>
+    </div>
+    <div id="v-q-ref">
+      <div class="row">
+        <input type="text" id="q-in" placeholder="Αναζήτηση κωδικού Q (π.χ. QTH, QSL, παρεμβολές)..." />
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 85px;">Κωδικός</th>
+            <th>Ως Ερώτηση (?)</th>
+            <th>Ως Απάντηση (.)</th>
+          </tr>
+        </thead>
+        <tbody id="q-body"></tbody>
+      </table>
+    </div>
+    <div id="v-q-quiz" style="display:none;"></div>
+  </div>
+
+  <div id="tab-cw" class="section">
+    <div class="sub-bar">
+      <button type="button" class="mode-b active" data-sec="cw" data-mode="ref">Πίνακας & Αναζήτηση</button>
+      <button type="button" class="mode-b" data-sec="cw" data-mode="quiz">Τεστ 10 Ερωτήσεων</button>
+    </div>
+    <div id="v-cw-ref">
+      <div class="row">
+        <input type="text" id="cw-in" placeholder="Αναζήτηση CW (π.χ. CQ, DE, 73, RST)..." />
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 105px;">Συντομ/φία</th>
+            <th style="width: 170px;">Όρος</th>
+            <th>Σημασία</th>
+          </tr>
+        </thead>
+        <tbody id="cw-body"></tbody>
+      </table>
+    </div>
+    <div id="v-cw-quiz" style="display:none;"></div>
+  </div>
+
+  <div id="tab-morse" class="section">
+    <div class="sub-bar">
+      <button type="button" class="mode-b active" data-sec="morse" data-mode="ref">Γεννήτρια & Ήχος</button>
+      <button type="button" class="mode-b" data-sec="morse" data-mode="quiz">Τεστ 10 Ερωτήσεων</button>
+    </div>
+    <div id="v-morse-ref">
+      <div class="row">
+        <input type="text" id="morse-in" value="CQ SV1ABC" placeholder="Γράψε κείμενο ή callsign..." />
+        <button type="button" class="btn btn-orange" id="morse-play">Αναπαραγωγή Ήχου</button>
+        <button type="button" class="btn btn-gray" id="morse-rand">Τυχαίο Callsign</button>
+      </div>
+      <div id="morse-out" class="morse-screen"></div>
+      <div id="morse-cards" class="cards"></div>
+      <div class="sub-title">Πλήρης Πίνακας Κώδικα Μορς</div>
+      <div id="morse-ref" class="grid-ref"></div>
+    </div>
+    <div id="v-morse-quiz" style="display:none;"></div>
+  </div>
+
+  <div class="foot">SvZone.eu • Ελληνική Ραδιοερασιτεχνική Κοινότητα</div>
+</div>
+
+<script>
+(function() {
+  var NATO = {
+    "A": "Alpha", "B": "Bravo", "C": "Charlie", "D": "Delta",
+    "E": "Echo", "F": "Foxtrot", "G": "Golf", "H": "Hotel",
+    "I": "India", "J": "Juliett", "K": "Kilo", "L": "Lima",
+    "M": "Mike", "N": "November", "O": "Oscar", "P": "Papa",
+    "Q": "Quebec", "R": "Romeo", "S": "Sierra", "T": "Tango",
+    "U": "Uniform", "V": "Victor", "W": "Whiskey", "X": "X-ray",
+    "Y": "Yankee", "Z": "Zulu",
+    "0": "Zero", "1": "One", "2": "Two", "3": "Three",
+    "4": "Four", "5": "Five", "6": "Six", "7": "Seven",
+    "8": "Eight", "9": "Nine", "/": "Stroke"
+  };
+
+  var MORSE = {
+    "A": ".-", "B": "-...", "C": "-.-.", "D": "-..", "E": ".",
+    "F": "..-.", "G": "--.", "H": "....", "I": "..", "J": ".---",
+    "K": "-.-", "L": ".-..", "M": "--", "N": "-.", "O": "---",
+    "P": ".--.", "Q": "--.-", "R": ".-.", "S": "...", "T": "-",
+    "U": "..-", "V": "...-", "W": ".--", "X": "-..-", "Y": "-.--",
+    "Z": "--..",
+    "0": "-----", "1": ".----", "2": "..---", "3": "...--", "4": "....-",
+    "5": ".....", "6": "-....", "7": "--...", "8": "---..", "9": "----.",
+    "/": "-..-."
+  };
+
+  var QLIST = [
+    ["QTH", "Ποια είναι η θέση σας;", "Η θέση μου είναι..."],
+    ["QSL", "Επιβεβαιώνετε τη λήψη;", "Επιβεβαιώνω τη λήψη / κάρτα QSL."],
+    ["QRZ", "Ποιος με καλεί;", "Σας καλεί ο σταθμός..."],
+    ["QRM", "Έχετε τεχνητές παρεμβολές;", "Έχω παρεμβολές από άλλους σταθμούς."],
+    ["QRN", "Έχετε ατμοσφαιρικά παράσιτα;", "Έχω φυσικά/ατμοσφαιρικά παράσιτα."],
+    ["QRP", "Να μειώσω ισχύ;", "Μειώστε ισχύ / χαμηλή ισχύς."],
+    ["QRO", "Να αυξήσω ισχύ;", "Αυξήστε ισχύ / υψηλή ισχύς."],
+    ["QRT", "Να σταματήσω εκπομπή;", "Σταματώ την εκπομπή."],
+    ["QRV", "Είστε έτοιμος;", "Είμαι έτοιμος."],
+    ["QRX", "Πότε θα με ξανακαλέσετε;", "Θα σας ξανακαλέσω / αναμείνατε."],
+    ["QSY", "Να αλλάξω συχνότητα;", "Αλλάξτε συχνότητα στους..."],
+    ["QSB", "Κάνει διαλείψεις το σήμα μου;", "Το σήμα σας κάνει fading."],
+    ["QSO", "Μπορείτε να επικοινωνήσετε με...;", "Μπορώ να επικοινωνήσω / επαφή."],
+    ["QRL", "Είστε απασχολημένος;", "Είμαι απασχολημένος / συχνότητα κατειλημμένη."],
+    ["QRG", "Ποια είναι η συχνότητά μου;", "Η ακριβής συχνότητά σας είναι..."],
+    ["QTR", "Ποια είναι η ώρα;", "Η ώρα (UTC) είναι..."]
+  ];
+
+  var CWLIST = [
+    ["CQ", "Seek You", "Γενική κλήση προς όλους."],
+    ["DE", "From", "Από (π.χ. CQ DE SV1ABC)."],
+    ["K", "Over", "Πρόσκληση για απάντηση."],
+    ["KN", "Over Specific", "Απάντηση μόνο από συγκεκριμένο σταθμό."],
+    ["AR", "End of Message", "Τέλος μηνύματος."],
+    ["SK", "End of Contact", "Οριστικό τέλος επαφής."],
+    ["RST", "Readability/Strength/Tone", "Αναφορά λήψης σήματος."],
+    ["73", "Best Regards", "Θερμούς χαιρετισμούς."],
+    ["88", "Love and Kisses", "Αγάπη και φιλιά."],
+    ["RIG", "Radio", "Πομποδέκτης."],
+    ["ANT", "Antenna", "Κεραία."],
+    ["WX", "Weather", "Καιρός."],
+    ["OP", "Operator", "Χειριστής."],
+    ["OM", "Old Man", "Συνάδελφος ραδιοερασιτέχνης."],
+    ["YL", "Young Lady", "Γυναίκα ραδιοερασιτέχνης."],
+    ["TU", "Thank You", "Ευχαριστώ."],
+    ["PSE", "Please", "Παρακαλώ."],
+    ["AGN", "Again", "Ξανά / Επαναλάβετε."],
+    ["FB", "Fine Business", "Πολύ ωραία / Εξαιρετικά."]
+  ];
+
+  var QSTATE = {};
+
+  function openTab(name) {
+    var tabBtns = document.querySelectorAll(".tab-b");
+    for (var i = 0; i < tabBtns.length; i++) {
+      var b = tabBtns[i];
+      b.className = (b.getAttribute("data-tab") === name) ? "tab-b active" : "tab-b";
+    }
+    var secs = document.querySelectorAll(".section");
+    for (var j = 0; j < secs.length; j++) {
+      secs[j].className = (secs[j].id === "tab-" + name) ? "section active" : "section";
+    }
+  }
+
+  function setMode(sec, mode) {
+    var modeBtns = document.querySelectorAll(".mode-b[data-sec='" + sec + "']");
+    for (var i = 0; i < modeBtns.length; i++) {
+      var mb = modeBtns[i];
+      mb.className = (mb.getAttribute("data-mode") === mode) ? "mode-b active" : "mode-b";
+    }
+    document.getElementById("v-" + sec + "-ref").style.display = (mode === "ref") ? "block" : "none";
+    document.getElementById("v-" + sec + "-quiz").style.display = (mode === "quiz") ? "block" : "none";
+    if (mode === "quiz") startQuiz(sec);
+  }
+
+  function randCallsignStr() {
+    var pre = ["SV1", "SV2", "SV3", "SV4", "SV5", "SV6", "SV7", "SV8", "SY1", "SY2", "SX602N"];
+    var call = pre[Math.floor(Math.random() * pre.length)];
+    if (call.indexOf("SV") === 0 || call.indexOf("SY") === 0) {
+      var abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      for (var k = 0; k < 3; k++) {
+        call += abc.charAt(Math.floor(Math.random() * abc.length));
+      }
+    }
+    return call;
+  }
+
+  function drawNato() {
+    var txt = document.getElementById("nato-in").value.toUpperCase();
+    var box = document.getElementById("nato-cards");
+    if (!txt) {
+      box.innerHTML = "Πληκτρολογήστε γράμματα ή αριθμούς...";
+      return;
+    }
+    var h = "";
+    for (var idx = 0; idx < txt.length; idx++) {
+      var c = txt.charAt(idx);
+      if (c === " ") {
+        h += "<div style='width:14px;'></div>";
+      } else {
+        h += "<div class='card'><span class='ch'>" + c + "</span><span class='val'>" + (NATO[c] || "-") + "</span></div>";
+      }
+    }
+    box.innerHTML = h;
+  }
+
+  function drawNatoRef() {
+    var ref = document.getElementById("nato-ref");
+    var h = "";
+    for (var k in NATO) {
+      if (Object.prototype.hasOwnProperty.call(NATO, k) && k !== "/") {
+        h += "<div class='ref-box'><strong>" + k + "</strong><span>" + NATO[k] + "</span></div>";
+      }
+    }
+    ref.innerHTML = h;
+  }
+
+  function drawQ() {
+    var s = document.getElementById("q-in").value.toLowerCase();
+    var body = document.getElementById("q-body");
+    var h = "";
+    for (var r = 0; r < QLIST.length; r++) {
+      var row = QLIST[r];
+      var line = (row[0] + " " + row[1] + " " + row[2]).toLowerCase();
+      if (!s || line.indexOf(s) !== -1) {
+        h += "<tr><td><span class='pill'>" + row[0] + "</span></td><td>" + row[1] + "</td><td>" + row[2] + "</td></tr>";
+      }
+    }
+    body.innerHTML = h;
+  }
+
+  function drawCw() {
+    var s = document.getElementById("cw-in").value.toLowerCase();
+    var body = document.getElementById("cw-body");
+    var h = "";
+    for (var r = 0; r < CWLIST.length; r++) {
+      var row = CWLIST[r];
+      var line = (row[0] + " " + row[1] + " " + row[2]).toLowerCase();
+      if (!s || line.indexOf(s) !== -1) {
+        h += "<tr><td><span class='pill'>" + row[0] + "</span></td><td><strong>" + row[1] + "</strong></td><td>" + row[2] + "</td></tr>";
+      }
+    }
+    body.innerHTML = h;
+  }
+
+  function drawMorse() {
+    var txt = document.getElementById("morse-in").value.toUpperCase();
+    var out = document.getElementById("morse-out");
+    var cards = document.getElementById("morse-cards");
+    if (!txt) {
+      out.textContent = "...";
+      cards.innerHTML = "Πληκτρολογήστε κείμενο...";
+      return;
+    }
+    var parts = [];
+    var chHtml = "";
+    for (var m = 0; m < txt.length; m++) {
+      var c = txt.charAt(m);
+      if (c === " ") {
+        parts.push("/");
+        chHtml += "<div style='width:14px;'></div>";
+      } else if (MORSE[c]) {
+        parts.push(MORSE[c]);
+        chHtml += "<div class='card'><span class='ch'>" + c + "</span><span class='val'>" + MORSE[c] + "</span></div>";
+      }
+    }
+    out.textContent = parts.join(" ");
+    cards.innerHTML = chHtml;
+  }
+
+  function drawMorseRef() {
+    var ref = document.getElementById("morse-ref");
+    var h = "";
+    for (var k in MORSE) {
+      if (Object.prototype.hasOwnProperty.call(MORSE, k) && k !== "/") {
+        h += "<div class='ref-box'><strong>" + k + "</strong><span>" + MORSE[k] + "</span></div>";
+      }
+    }
+    ref.innerHTML = h;
+  }
+
+  function soundMorse() {
+    var code = document.getElementById("morse-out").textContent || "";
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || !code) return;
+    var ctx = new AC();
+    var t = ctx.currentTime + 0.05;
+    var dot = 0.08;
+    for (var p = 0; p < code.length; p++) {
+      var ch = code.charAt(p);
+      if (ch === "." || ch === "-") {
+        var dur = (ch === ".") ? dot : dot * 3;
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.frequency.value = 650;
+        gain.gain.value = 0.14;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + dur);
+        t += dur + dot;
+      } else if (ch === " ") {
+        t += dot * 2;
+      } else if (ch === "/") {
+        t += dot * 4;
+      }
+    }
+  }
+
+  function pickRandom(arr, n) {
+    var copy = arr.slice();
+    for (var x = copy.length - 1; x > 0; x--) {
+      var y = Math.floor(Math.random() * (x + 1));
+      var tmp = copy[x];
+      copy[x] = copy[y];
+      copy[y] = tmp;
+    }
+    return copy.slice(0, n);
+  }
+
+  function makeQuizSet(sec) {
+    var items = [];
+    if (sec === "nato") {
+      var keys = Object.keys(NATO).filter(function(k) { return k !== "/"; });
+      var chosen = pickRandom(keys, 10);
+      for (var a = 0; a < chosen.length; a++) {
+        var ch = chosen[a];
+        var ok = NATO[ch];
+        var others = pickRandom(keys.filter(function(x) { return x !== ch; }), 3).map(function(x) { return NATO[x]; });
+        items.push({ q: "Ποια είναι η λέξη NATO για το « " + ch + " »;", ok: ok, opts: pickRandom([ok].concat(others), 4) });
+      }
+    } else if (sec === "q") {
+      var qChosen = pickRandom(QLIST, 10);
+      for (var b = 0; b < qChosen.length; b++) {
+        var row = qChosen[b];
+        var okQ = row[2];
+        var othersQ = pickRandom(QLIST.filter(function(x) { return x[0] !== row[0]; }), 3).map(function(x) { return x[2]; });
+        items.push({ q: "Τι σημαίνει ο κωδικός « " + row[0] + " »;", ok: okQ, opts: pickRandom([okQ].concat(othersQ), 4) });
+      }
+    } else if (sec === "cw") {
+      var cwChosen = pickRandom(CWLIST, 10);
+      for (var cIdx = 0; cIdx < cwChosen.length; cIdx++) {
+        var cRow = cwChosen[cIdx];
+        var okC = cRow[2] + " (" + cRow[1] + ")";
+        var othersC = pickRandom(CWLIST.filter(function(x) { return x[0] !== cRow[0]; }), 3).map(function(x) { return x[2] + " (" + x[1] + ")"; });
+        items.push({ q: "Τι σημαίνει η συντομογραφία « " + cRow[0] + " »;", ok: okC, opts: pickRandom([okC].concat(othersC), 4) });
+      }
+    } else {
+      var mKeys = Object.keys(MORSE).filter(function(k) { return k !== "/"; });
+      var mChosen = pickRandom(mKeys, 10);
+      for (var d = 0; d < mChosen.length; d++) {
+        var mCh = mChosen[d];
+        var okM = MORSE[mCh];
+        var othersM = pickRandom(mKeys.filter(function(x) { return x !== mCh; }), 3).map(function(x) { return MORSE[x]; });
+        items.push({ q: "Ποιος είναι ο κώδικας Μορς για το « " + mCh + " »;", ok: okM, opts: pickRandom([okM].concat(othersM), 4) });
+      }
+    }
+    return items;
+  }
+
+  function startQuiz(sec) {
+    QSTATE[sec] = { list: makeQuizSet(sec), idx: 0, score: 0, done: false };
+    showQStep(sec);
+  }
+
+  function showQStep(sec) {
+    var st = QSTATE[sec];
+    var box = document.getElementById("v-" + sec + "-quiz");
+    if (!st || st.idx >= st.list.length) {
+      var pct = st ? Math.round((st.score / st.list.length) * 100) : 0;
+      box.innerHTML =
+        "<div class='quiz-box' style='text-align:center;'>" +
+          "<h3>Τέλος Τεστ!</h3>" +
+          "<p style='margin:10px 0 14px; font-size:1.05rem;'>Σκορ: <strong>" + (st ? st.score : 0) + " / 10</strong> (" + pct + "%)</p>" +
+          "<button type='button' class='btn btn-orange q-restart'>Νέο Τεστ 10 Ερωτήσεων</button>" +
+        "</div>";
+      box.querySelector(".q-restart").addEventListener("click", function() { startQuiz(sec); });
+      return;
+    }
+
+    var item = st.list[st.idx];
+    var optsHtml = "";
+    for (var o = 0; o < item.opts.length; o++) {
+      optsHtml += "<button type='button' class='opt-b' data-opt='" + o + "'>" + item.opts[o] + "</button>";
+    }
+    box.innerHTML =
+      "<div class='quiz-box'>" +
+        "<div class='quiz-top'><span>Ερώτηση " + (st.idx + 1) + " από " + st.list.length + "</span><span>Σκορ: " + st.score + "</span></div>" +
+        "<div class='quiz-q'>" + item.q + "</div>" +
+        "<div class='opt-list'>" + optsHtml + "</div>" +
+        "<div id='qmsg-" + sec + "' class='quiz-msg'></div>" +
+        "<div style='margin-top:10px; text-align:right;'><button type='button' id='qnext-" + sec + "' class='btn btn-orange' style='display:none;'>Επόμενη →</button></div>" +
+      "</div>";
+
+    var optButtons = box.querySelectorAll(".opt-b");
+    for (var ob = 0; ob < optButtons.length; ob++) {
+      optButtons[ob].addEventListener("click", (function(chosenIdx) {
+        return function() { checkAns(sec, chosenIdx); };
+      })(ob));
+    }
+
+    document.getElementById("qnext-" + sec).addEventListener("click", function() {
+      st.idx++;
+      st.done = false;
+      showQStep(sec);
+    });
+  }
+
+  function checkAns(sec, idx) {
+    var st = QSTATE[sec];
+    if (!st || st.done) return;
+    st.done = true;
+    var item = st.list[st.idx];
+    var chosen = item.opts[idx];
+    var btns = document.querySelectorAll("#v-" + sec + "-quiz .opt-b");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].disabled = true;
+      if (item.opts[i] === item.ok) btns[i].className = "opt-b ok";
+      else if (i === idx) btns[i].className = "opt-b bad";
+    }
+    var msg = document.getElementById("qmsg-" + sec);
+    if (chosen === item.ok) {
+      st.score++;
+      msg.style.color = "#16a34a";
+      msg.textContent = "Σωστά!";
+    } else {
+      msg.style.color = "#dc2626";
+      msg.textContent = "Λάθος — η σωστή επιλογή είναι με πράσινο.";
+    }
+    document.getElementById("qnext-" + sec).style.display = "inline-block";
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    var tabBtns = document.querySelectorAll(".tab-b");
+    for (var i = 0; i < tabBtns.length; i++) {
+      tabBtns[i].addEventListener("click", function() {
+        openTab(this.getAttribute("data-tab"));
+      });
+    }
+
+    var modeBtns = document.querySelectorAll(".mode-b");
+    for (var j = 0; j < modeBtns.length; j++) {
+      modeBtns[j].addEventListener("click", function() {
+        setMode(this.getAttribute("data-sec"), this.getAttribute("data-mode"));
+      });
+    }
+
+    document.getElementById("nato-in").addEventListener("input", drawNato);
+    document.getElementById("nato-rand").addEventListener("click", function() {
+      document.getElementById("nato-in").value = randCallsignStr();
+      drawNato();
+    });
+    document.getElementById("nato-clear").addEventListener("click", function() {
+      document.getElementById("nato-in").value = "";
+      drawNato();
+    });
+
+    document.getElementById("q-in").addEventListener("input", drawQ);
+    document.getElementById("cw-in").addEventListener("input", drawCw);
+
+    document.getElementById("morse-in").addEventListener("input", drawMorse);
+    document.getElementById("morse-play").addEventListener("click", soundMorse);
+    document.getElementById("morse-rand").addEventListener("click", function() {
+      document.getElementById("morse-in").value = randCallsignStr();
+      drawMorse();
+    });
+
+    drawNato();
+    drawNatoRef();
+    drawQ();
+    drawCw();
+    drawMorse();
+    drawMorseRef();
+  });
+})();
+</script>
+</body>
+</html>
