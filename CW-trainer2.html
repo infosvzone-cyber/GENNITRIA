@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CW Trainer & Live Decoder — SvZone.eu</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #16202a;
+      --muted: #5c6b7a;
+      --accent: #e65100;
+      --accent-soft: #fff3e0;
+      --border: #dde3ea;
+      --ok: #1b5e20;
+      --ok-bg: #e8f5e9;
+      --warn: #b71c1c;
+      --warn-bg: #ffebee;
+      --dark: #0f172a;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding: 16px;
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 1.25rem;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid #ffcc80;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .controls-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.84rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    span.unit {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 0.78rem;
+    }
+
+    input[type="number"], input[type="text"], select, textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #c8d1dc;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--text);
+      font-family: inherit;
+    }
+
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid rgba(230, 81, 0, 0.25);
+      border-color: var(--accent);
+    }
+
+    .preset-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #fff;
+      color: var(--text);
+    }
+
+    button:hover {
+      background: #f1f5f9;
+    }
+
+    button.chip {
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: #ffcc80;
+    }
+
+    button.chip:hover {
+      background: #ffe0b2;
+    }
+
+    button.active-toggle {
+      background: #e8f5e9;
+      color: #1b5e20;
+      border-color: #a5d6a7;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    button.primary:hover {
+      background: #bf360c;
+    }
+
+    button.danger {
+      background: var(--warn-bg);
+      color: var(--warn);
+      border-color: #ef9a9a;
+    }
+
+    .monitor {
+      background: var(--dark);
+      color: #f8fafc;
+      border-radius: 10px;
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      margin-bottom: 10px;
+    }
+
+    .monitor-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .lamp {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #334155;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .lamp.on {
+      background: #fb8c00;
+      box-shadow: 0 0 10px #fb8c00;
+    }
+
+    .lamp.listen {
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+    }
+
+    .decoded-out {
+      min-height: 76px;
+      font-size: 1.05rem;
+      letter-spacing: 0.05em;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .morse-stream {
+      font-size: 0.9rem;
+      color: #fdba74;
+      min-height: 22px;
+      margin-top: 6px;
+      word-break: break-all;
+    }
+
+    .key-pad {
+      width: 100%;
+      padding: 14px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 2px dashed #fb8c00;
+      border-radius: 10px;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .key-pad.active {
+      background: var(--accent);
+      color: #fff;
+      border-style: solid;
+    }
+
+    .status-line {
+      font-size: 0.83rem;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .meter-wrap {
+      height: 9px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 8px 0;
+      position: relative;
+    }
+
+    .meter-bar {
+      height: 100%;
+      width: 0%;
+      background: #22c55e;
+      transition: width 0.05s linear;
+    }
+
+    .meter-thresh {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--accent);
+    }
+
+    .hidden-text {
+      filter: blur(6px);
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Γεννήτρια & Αποκωδικοποιητής Τηλεγραφίας (CW)</h1>
+        <p>Εξάσκηση Morse (WPM / Farnsworth) και ζωντανή αποκωδικοποίηση με φίλτρο ζώνης ή χειροκίνητο κλειδί</p>
+      </div>
+      <div class="badge">SVZONE CW LAB</div>
+    </header>
+
+    <div class="grid">
+      <!-- 1. CW TRAINER -->
+      <section class="card">
+        <h2>1. Γεννήτρια CW (Trainer)</h2>
+
+        <div class="controls-row">
+          <div>
+            <label for="wpm">Ταχύτητα <span class="unit">WPM</span></label>
+            <input id="wpm" type="number" min="5" max="45" step="1" value="18" />
+          </div>
+          <div>
+            <label for="fwpm">Farnsworth <span class="unit">WPM</span></label>
+            <input id="fwpm" type="number" min="5" max="45" step="1" value="14" />
+          </div>
+          <div>
+            <label for="toneHz">Τόνος <span class="unit">Hz</span></label>
+            <input id="toneHz" type="number" min="300" max="1200" step="10" value="650" />
+          </div>
+        </div>
+
+        <div class="preset-strip">
+          <button type="button" class="chip" data-gen="letters">🔤 Γράμματα (A–Z)</button>
+          <button type="button" class="chip" data-gen="numbers">🔢 Αριθμοί (0–9)</button>
+          <button type="button" class="chip" data-gen="qcodes">📻 Q-Codes & CW</button>
+          <button type="button" class="chip" data-gen="qso">📡 Ραδιοερασιτεχνικό QSO</button>
+        </div>
+
+        <div class="field">
+          <label for="cwInput">Κείμενο προς εκπομπή</label>
+          <textarea id="cwInput" placeholder="Γράψε κείμενο ή επέλεξε μια κατηγορία εξάσκησης...">CQ CQ DE SV1XXX SV1XXX PSE K</textarea>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="primary" id="btnPlay">▶ Εκπομπή</button>
+          <button type="button" class="danger" id="btnStop">■ Διακοπή</button>
+          <button type="button" id="btnToggleBlur">👁 Απόκρυψη Κειμένου</button>
+        </div>
+
+        <div class="monitor">
+          <div class="monitor-top">
+            <span><span id="txLamp" class="lamp"></span>ΚΑΤΑΣΤΑΣΗ: <strong id="txStatus">Έτοιμο</strong></span>
+            <span>ΧΑΡΑΚΤΗΡΑΣ: <strong id="txCurrentChar">—</strong></span>
+          </div>
+          <div id="txMorsePreview" class="morse-stream">...</div>
+        </div>
+
+        <div class="status-line">
+          Tip: Πάτησε «Απόκρυψη Κειμένου» και διάλεξε τυχαία Γράμματα, Αριθμούς ή Q-Codes για καθαρή εξάσκηση ακοής.
+        </div>
+      </section>
+
+      <!-- 2. LIVE CW DECODER -->
+      <section class="card">
+        <h2>2. Live CW Decoder (Bandpass + Hysteresis)</h2>
+
+        <div class="controls-row">
+          <div>
+            <label for="decCenterHz">Κέντρο Φίλτρου <span class="unit">Hz</span></label>
+            <input id="decCenterHz" type="number" min="300" max="1500" step="10" value="650" />
+          </div>
+          <div>
+            <label for="decThreshold">Κατώφλι <span class="unit">%</span></label>
+            <input id="decThreshold" type="number" min="3" max="85" step="1" value="18" />
+          </div>
+          <div>
+            <label for="decEstWpm">Εκτίμηση <span class="unit">WPM</span></label>
+            <input id="decEstWpm" type="text" value="—" readonly style="background:#f8fafc; font-weight:700;" />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="primary" id="btnMic">🎙 Έναρξη Μικροφώνου</button>
+          <button type="button" class="active-toggle" id="btnSidetone">🔊 Sidetone: ON</button>
+          <button type="button" id="btnSyncTone">🔁 Συγχρονισμός Hz</button>
+          <button type="button" id="btnClearDec">🧹 Καθαρισμός</button>
+        </div>
+
+        <div class="meter-wrap" title="Φιλτραρισμένη στάθμη CW (πορτοκαλί γραμμή = κατώφλι)">
+          <div id="audioMeter" class="meter-bar"></div>
+          <div id="threshMarker" class="meter-thresh" style="left:18%;"></div>
+        </div>
+
+        <div class="monitor">
+          <div class="monitor-top">
+            <span><span id="rxLamp" class="lamp"></span>ΑΠΟΚΩΔΙΚΟΠΟΙΗΤΗΣ: <strong id="rxStatus">Αναμονή</strong></span>
+            <span>ΣΤΟΙΧΕΙΑ: <strong id="rxElementBuf"></strong></span>
+          </div>
+          <div id="decodedText" class="decoded-out"></div>
+          <div id="rawMorseLog" class="morse-stream"></div>
+        </div>
+
+        <button type="button" id="keyPad" class="key-pad">
+          Πάτημα Κλειδιού (Κράτησε πατημένο εδώ ή το SPACE)
+        </button>
+
+        <div id="decHint" class="status-line">
+          Το κλειδί παράγει τοπικό ήχο sidetone στη συχνότητα «Κέντρο Φίλτρου (Hz)». Μπορείς να το κλείσεις ανά πάσα στιγμή από το κουμπί «Sidetone».
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const MORSE_MAP = {
+      ".-": "A", "-...": "B", "-.-.": "C", "-..": "D", ".": "E",
+      "..-.": "F", "--.": "G", "....": "H", "..": "I", ".---": "J",
+      "-.-": "K", ".-..": "L", "--": "M", "-.": "N", "---": "O",
+      ".--.": "P", "--.-": "Q", ".-.": "R", "...": "S", "-": "T",
+      "..-": "U", "...-": "V", ".--": "W", "-..-": "X", "-.--": "Y",
+      "--..": "Z",
+      "-----": "0", ".----": "1", "..---": "2", "...--": "3", "....-": "4",
+      ".....": "5", "-....": "6", "--...": "7", "---..": "8", "----.": "9",
+      ".-.-.-": ".", "--..--": ",", "..--..": "?", ".----.": "'",
+      "-.-.--": "!", "-..-.": "/", "-.--.": "(", "-.--.-": ")",
+      ".-...": "&", "---...": ":", "-.-.-.": ";", "-...-": "=",
+      ".-.-.": "+", "-....-": "-", "..--.-": "_", ".-..-.": '"',
+      "...-..-": "$", ".--.-.": "@"
+    };
+
+    const CHAR_TO_MORSE = Object.fromEntries(
+      Object.entries(MORSE_MAP).map(([code, ch]) => [ch, code])
+    );
+
+    const QCODES_AND_ABBR = [
+      "QTH", "QSL", "QRZ", "QRM", "QRN", "QSB", "QRP", "QRO", "QSY", "QRT",
+      "RST 599", "TU", "73", "88", "PSE", "AGN", "BK", "DE", "CQ", "AR", "SK", "K", "KN"
+    ];
+
+    const QSO_SAMPLES = [
+      "CQ CQ DE SV1ABC SV1ABC PSE K",
+      "SV1ABC DE SV2XYZ GE OM UR RST 599 599 QTH THESSALONIKI HW? K",
+      "SV2XYZ DE SV1ABC R TU FER RPT UR 579 QTH ATHENS 73 DE SV1ABC SK",
+      "CQ TEST DE SX602N SX602N TEST",
+      "QRZ? DE SV1DVP QSL VIA BURO 73"
+    ];
+
+    function buildRandomPractice(mode) {
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      const numbers = "0123456789";
+
+      if (mode === "letters") {
+        const groups = [];
+        for (let g = 0; g < 5; g++) {
+          let grp = "";
+          for (let i = 0; i < 5; i++) {
+            grp += letters[Math.floor(Math.random() * letters.length)];
+          }
+          groups.push(grp);
+        }
+        return groups.join(" ");
+      }
+
+      if (mode === "numbers") {
+        const groups = [];
+        for (let g = 0; g < 5; g++) {
+          let grp = "";
+          for (let i = 0; i < 5; i++) {
+            grp += numbers[Math.floor(Math.random() * numbers.length)];
+          }
+          groups.push(grp);
+        }
+        return groups.join(" ");
+      }
+
+      if (mode === "qcodes") {
+        const picks = [];
+        for (let i = 0; i < 7; i++) {
+          picks.push(QCODES_AND_ABBR[Math.floor(Math.random() * QCODES_AND_ABBR.length)]);
+        }
+        return picks.join(" ");
+      }
+
+      return QSO_SAMPLES[Math.floor(Math.random() * QSO_SAMPLES.length)];
+    }
+
+    // --- SHARED WEB AUDIO CONTEXT & SIDETONE ---
+    let audioCtx = null;
+    let sidetoneEnabled = true;
+    let sidetoneOsc = null;
+    let sidetoneGain = null;
+
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new Ctx();
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function startKeySidetone() {
+      if (!sidetoneEnabled) return;
+      const ctx = ensureAudioContext();
+      const now = ctx.currentTime;
+      const hz = Math.max(250, Math.min(1600, parseFloat(document.getElementById("decCenterHz").value) || 650));
+
+      stopKeySidetone();
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(hz, now);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.20, now + 0.006);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      sidetoneOsc = osc;
+      sidetoneGain = gain;
+    }
+
+    function stopKeySidetone() {
+      if (!sidetoneOsc || !sidetoneGain || !audioCtx) {
+        sidetoneOsc = null;
+        sidetoneGain = null;
+        return;
+      }
+      const ctx = audioCtx;
+      const now = ctx.currentTime;
+      const osc = sidetoneOsc;
+      const gain = sidetoneGain;
+      sidetoneOsc = null;
+      sidetoneGain = null;
+
+      try {
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.008);
+        osc.stop(now + 0.012);
+        setTimeout(() => {
+          try { osc.disconnect(); gain.disconnect(); } catch (_) {}
+        }, 25);
+      } catch (_) {}
+    }
+
+    const btnSidetone = document.getElementById("btnSidetone");
+    btnSidetone.addEventListener("click", () => {
+      sidetoneEnabled = !sidetoneEnabled;
+      if (!sidetoneEnabled) stopKeySidetone();
+      btnSidetone.textContent = sidetoneEnabled ? "🔊 Sidetone: ON" : "🔇 Sidetone: OFF";
+      btnSidetone.classList.toggle("active-toggle", sidetoneEnabled);
+    });
+
+    // --- CW TRAINER (WEB AUDIO) ---
+    let isPlaying = false;
+    let stopRequested = false;
+    let activeOsc = null;
+    let activeGain = null;
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function playTone(durationMs, freqHz) {
+      if (stopRequested) return;
+      const ctx = ensureAudioContext();
+      const now = ctx.currentTime;
+      const durSec = Math.max(0.01, durationMs / 1000);
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freqHz, now);
+
+      const ramp = Math.min(0.006, durSec * 0.25);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.22, now + ramp);
+      gain.gain.setValueAtTime(0.22, now + Math.max(ramp, durSec - ramp));
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + durSec);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      activeOsc = osc;
+      activeGain = gain;
+
+      document.getElementById("txLamp").classList.add("on");
+      osc.start(now);
+      osc.stop(now + durSec + 0.01);
+
+      await sleep(durationMs);
+
+      document.getElementById("txLamp").classList.remove("on");
+      try { osc.disconnect(); gain.disconnect(); } catch (_) {}
+      activeOsc = null;
+      activeGain = null;
+    }
+
+    function stopTrainer() {
+      stopRequested = true;
+      isPlaying = false;
+      try {
+        if (activeOsc) activeOsc.stop();
+      } catch (_) {}
+      document.getElementById("txLamp").classList.remove("on");
+      document.getElementById("txStatus").textContent = "Διακόπηκε";
+      document.getElementById("txCurrentChar").textContent = "—";
+    }
+
+    async function startTrainer() {
+      if (isPlaying) stopTrainer();
+      await sleep(40);
+
+      const rawText = (document.getElementById("cwInput").value || "").toUpperCase().trim();
+      if (!rawText) return;
+
+      const wpm = Math.max(5, Math.min(45, parseFloat(document.getElementById("wpm").value) || 18));
+      const fwpm = Math.max(5, Math.min(45, parseFloat(document.getElementById("fwpm").value) || wpm));
+      const toneHz = Math.max(250, Math.min(1500, parseFloat(document.getElementById("toneHz").value) || 650));
+
+      const ditMs = 1200 / wpm;
+      const dahMs = ditMs * 3;
+      const intraGapMs = ditMs;
+
+      let charGapMs = ditMs * 3;
+      let wordGapMs = ditMs * 7;
+      if (fwpm < wpm) {
+        const unitMs = 60000 / (50 * fwpm);
+        charGapMs = unitMs * 3;
+        wordGapMs = unitMs * 7;
+      }
+
+      isPlaying = true;
+      stopRequested = false;
+      document.getElementById("txStatus").textContent = "Εκπομπή...";
+      document.getElementById("txMorsePreview").textContent = "";
+
+      for (let i = 0; i < rawText.length; i++) {
+        if (stopRequested) break;
+        const ch = rawText[i];
+
+        if (ch === " " || ch === "\n" || ch === "\t") {
+          document.getElementById("txCurrentChar").textContent = "[ΚΕΝΟ]";
+          document.getElementById("txMorsePreview").textContent += " / ";
+          await sleep(wordGapMs);
+          continue;
+        }
+
+        const code = CHAR_TO_MORSE[ch];
+        if (!code) continue;
+
+        document.getElementById("txCurrentChar").textContent = `${ch} (${code})`;
+        document.getElementById("txMorsePreview").textContent += `${code} `;
+
+        for (let j = 0; j < code.length; j++) {
+          if (stopRequested) break;
+          const sym = code[j];
+          await playTone(sym === "." ? ditMs : dahMs, toneHz);
+          if (j < code.length - 1 && !stopRequested) {
+            await sleep(intraGapMs);
+          }
+        }
+
+        if (!stopRequested) {
+          await sleep(charGapMs);
+        }
+      }
+
+      isPlaying = false;
+      if (!stopRequested) {
+        document.getElementById("txStatus").textContent = "Ολοκληρώθηκε";
+        document.getElementById("txCurrentChar").textContent = "—";
+      }
+    }
+
+    document.getElementById("btnPlay").addEventListener("click", startTrainer);
+    document.getElementById("btnStop").addEventListener("click", stopTrainer);
+
+    document.querySelectorAll("button.chip[data-gen]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.getElementById("cwInput").value = buildRandomPractice(btn.dataset.gen);
+      });
+    });
+
+    document.getElementById("btnToggleBlur").addEventListener("click", (e) => {
+      const ta = document.getElementById("cwInput");
+      ta.classList.toggle("hidden-text");
+      e.target.textContent = ta.classList.contains("hidden-text")
+        ? "👁 Εμφάνιση Κειμένου"
+        : "👁 Απόκρυψη Κειμένου";
+    });
+
+    // --- LIVE CW DECODER (BANDPASS + HYSTERESIS + KEY + SIDETONE) ---
+    let currentPattern = "";
+    let keyDownTime = 0;
+    let isKeyActive = false;
+    let isManualKeyDown = false;
+    let charTimer = null;
+    let wordTimer = null;
+    const ditSamples = [];
+
+    function estimateDitMs() {
+      if (!ditSamples.length) return 75;
+      const sorted = [...ditSamples].sort((a, b) => a - b);
+      const half = sorted.slice(0, Math.max(1, Math.ceil(sorted.length / 2)));
+      const avg = half.reduce((a, b) => a + b, 0) / half.length;
+      return Math.max(28, Math.min(250, avg));
+    }
+
+    function updateEstimatedWpm() {
+      const ditMs = estimateDitMs();
+      const est = Math.round(1200 / ditMs);
+      document.getElementById("decEstWpm").value = `${Math.max(5, Math.min(45, est))} WPM`;
+    }
+
+    function flushChar() {
+      if (!currentPattern) return;
+      const ch = MORSE_MAP[currentPattern] || `[${currentPattern}]`;
+      const outEl = document.getElementById("decodedText");
+      outEl.textContent += ch;
+      document.getElementById("rawMorseLog").textContent += `${currentPattern} `;
+      currentPattern = "";
+      document.getElementById("rxElementBuf").textContent = "";
+    }
+
+    function flushWord() {
+      flushChar();
+      const outEl = document.getElementById("decodedText");
+      if (outEl.textContent && !outEl.textContent.endsWith(" ")) {
+        outEl.textContent += " ";
+      }
+    }
+
+    function onToneStart(nowMs, withSidetone = false) {
+      if (isKeyActive) return;
+      isKeyActive = true;
+      keyDownTime = nowMs;
+      clearTimeout(charTimer);
+      clearTimeout(wordTimer);
+      document.getElementById("rxLamp").classList.add("on");
+      if (withSidetone) startKeySidetone();
+    }
+
+    function onToneEnd(nowMs, withSidetone = false) {
+      if (withSidetone) stopKeySidetone();
+      if (!isKeyActive) return;
+      isKeyActive = false;
+      document.getElementById("rxLamp").classList.remove("on");
+
+      const pulseMs = nowMs - keyDownTime;
+      if (pulseMs < 24) return;
+
+      const currentDit = estimateDitMs();
+      const thresholdMs = currentDit * 2.1;
+      const symbol = pulseMs >= thresholdMs ? "-" : ".";
+
+      if (symbol === ".") {
+        ditSamples.push(pulseMs);
+        if (ditSamples.length > 30) ditSamples.shift();
+        updateEstimatedWpm();
+      }
+
+      currentPattern += symbol;
+      document.getElementById("rxElementBuf").textContent = currentPattern;
+
+      const charTimeoutMs = Math.max(170, currentDit * 3.1);
+      const wordTimeoutMs = Math.max(430, currentDit * 7.0);
+
+      charTimer = setTimeout(flushChar, charTimeoutMs);
+      wordTimer = setTimeout(flushWord, wordTimeoutMs);
+    }
+
+    const keyPadEl = document.getElementById("keyPad");
+    function pressManualKey() {
+      if (isManualKeyDown) return;
+      isManualKeyDown = true;
+      keyPadEl.classList.add("active");
+      onToneStart(performance.now(), true);
+    }
+    function releaseManualKey() {
+      if (!isManualKeyDown) return;
+      isManualKeyDown = false;
+      keyPadEl.classList.remove("active");
+      onToneEnd(performance.now(), true);
+    }
+
+    keyPadEl.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      pressManualKey();
+    });
+    window.addEventListener("pointerup", releaseManualKey);
+    window.addEventListener("blur", releaseManualKey);
+
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && document.activeElement.tagName !== "TEXTAREA" && document.activeElement.tagName !== "INPUT") {
+        e.preventDefault();
+        if (!e.repeat) pressManualKey();
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      if (e.code === "Space" && document.activeElement.tagName !== "TEXTAREA" && document.activeElement.tagName !== "INPUT") {
+        e.preventDefault();
+        releaseManualKey();
+      }
+    });
+
+    document.getElementById("btnClearDec").addEventListener("click", () => {
+      stopKeySidetone();
+      currentPattern = "";
+      ditSamples.length = 0;
+      document.getElementById("decodedText").textContent = "";
+      document.getElementById("rawMorseLog").textContent = "";
+      document.getElementById("rxElementBuf").textContent = "";
+      document.getElementById("decEstWpm").value = "—";
+    });
+
+    document.getElementById("btnSyncTone").addEventListener("click", () => {
+      const hz = parseFloat(document.getElementById("toneHz").value) || 650;
+      document.getElementById("decCenterHz").value = hz;
+      if (bandpassNode && audioCtx) {
+        bandpassNode.frequency.setValueAtTime(hz, audioCtx.currentTime);
+      }
+    });
+
+    const threshInput = document.getElementById("decThreshold");
+    const threshMarker = document.getElementById("threshMarker");
+    function updateThreshMarker() {
+      const val = Math.max(1, Math.min(99, parseFloat(threshInput.value) || 18));
+      threshMarker.style.left = `${val}%`;
+    }
+    threshInput.addEventListener("input", updateThreshMarker);
+    updateThreshMarker();
+
+    let micStream = null;
+    let micRaf = null;
+    let micActive = false;
+    let bandpassNode = null;
+    let smoothedLevel = 0;
+
+    async function toggleMic() {
+      const btn = document.getElementById("btnMic");
+      if (micActive) {
+        micActive = false;
+        if (micRaf) cancelAnimationFrame(micRaf);
+        if (micStream) micStream.getTracks().forEach((t) => t.stop());
+        bandpassNode = null;
+        document.getElementById("audioMeter").style.width = "0%";
+        document.getElementById("rxLamp").classList.remove("listen", "on");
+        document.getElementById("rxStatus").textContent = "Αναμονή";
+        btn.textContent = "🎙 Έναρξη Μικροφώνου";
+        return;
+      }
+
+      try {
+        const ctx = ensureAudioContext();
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }
+        });
+
+        const source = ctx.createMediaStreamSource(micStream);
+        const filter = ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        const centerHz = Math.max(250, Math.min(2000, parseFloat(document.getElementById("decCenterHz").value) || 650));
+        filter.frequency.setValueAtTime(centerHz, ctx.currentTime);
+        filter.Q.setValueAtTime(8.0, ctx.currentTime);
+        bandpassNode = filter;
+
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 1024;
+
+        source.connect(filter);
+        filter.connect(analyser);
+
+        const dataArray = new Float32Array(analyser.fftSize);
+        micActive = true;
+        smoothedLevel = 0;
+        btn.textContent = "⏹ Διακοπή Μικροφώνου";
+        document.getElementById("rxLamp").classList.add("listen");
+        document.getElementById("rxStatus").textContent = "Ακούει (Bandpass)...";
+
+        function loop() {
+          if (!micActive) return;
+
+          const targetHz = Math.max(250, Math.min(2000, parseFloat(document.getElementById("decCenterHz").value) || 650));
+          if (Math.abs(filter.frequency.value - targetHz) > 1) {
+            filter.frequency.setValueAtTime(targetHz, ctx.currentTime);
+          }
+
+          analyser.getFloatTimeDomainData(dataArray);
+          let sumSq = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sumSq += dataArray[i] * dataArray[i];
+          }
+          const rms = Math.sqrt(sumSq / dataArray.length);
+          const rawPct = Math.min(100, rms * 420);
+          smoothedLevel = smoothedLevel * 0.55 + rawPct * 0.45;
+
+          const displayPct = Math.min(100, Math.round(smoothedLevel));
+          document.getElementById("audioMeter").style.width = `${displayPct}%`;
+
+          const highThresh = Math.max(2, parseFloat(threshInput.value) || 18);
+          const lowThresh = highThresh * 0.65;
+
+          if (!isKeyActive && smoothedLevel >= highThresh) {
+            onToneStart(performance.now(), false);
+          } else if (isKeyActive && smoothedLevel <= lowThresh && !isManualKeyDown) {
+            onToneEnd(performance.now(), false);
+          }
+
+          micRaf = requestAnimationFrame(loop);
+        }
+
+        loop();
+      } catch (err) {
+        document.getElementById("rxStatus").textContent = "Σφάλμα μικροφώνου";
+        document.getElementById("decHint").textContent =
+          "Δεν δόθηκε πρόσβαση στο μικρόφωνο ή δεν υποστηρίζεται σε αυτό το πλαίσιο. Μπορείς να χρησιμοποιήσεις το κλειδί (Space / κουμπί) με sidetone.";
+      }
+    }
+
+    document.getElementById("btnMic").addEventListener("click", toggleMic);
+  </script>
+</body>
+</html>
