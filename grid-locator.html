@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Υπολογιστής Maidenhead Grid Locator, Απόστασης & Αζιμουθίου — SvZone.eu</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #16202a;
+      --muted: #5c6b7a;
+      --accent: #e65100;
+      --accent-soft: #fff3e0;
+      --border: #dde3ea;
+      --ok: #1b5e20;
+      --ok-bg: #e8f5e9;
+      --warn: #b71c1c;
+      --warn-bg: #ffebee;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding: 16px;
+    }
+
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 1.25rem;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid #ffcc80;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    span.unit {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 0.78rem;
+    }
+
+    input[type="number"], input[type="text"], select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #c8d1dc;
+      border-radius: 8px;
+      font-size: 0.93rem;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input.mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid rgba(230, 81, 0, 0.25);
+      border-color: var(--accent);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #fff;
+      color: var(--text);
+    }
+
+    button:hover {
+      background: #f1f5f9;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    button.primary:hover {
+      background: #bf360c;
+    }
+
+    button.chip {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: #ffcc80;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+    }
+
+    button.chip:hover {
+      background: #ffe0b2;
+    }
+
+    .info-pill {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .compass-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafbfd;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fafbfd;
+    }
+
+    .kpi.highlight {
+      border-color: #ffcc80;
+      background: #fffaf3;
+    }
+
+    .kpi .label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi .val {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .kpi .sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .details {
+      font-size: 0.86rem;
+      color: var(--muted);
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .details div {
+      margin-bottom: 5px;
+    }
+
+    .details div:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Υπολογιστής Maidenhead Grid Locator, Απόστασης & Αζιμουθίου</h1>
+        <p>Μετατροπή συντεταγμένων σε Grid Locator (4/6/8 χαρακτήρων) και υπολογισμός QSO Bearing & Distance</p>
+      </div>
+      <div class="badge">SVZONE GRID LAB</div>
+    </header>
+
+    <div class="grid">
+      <!-- 1. COORDINATES <-> GRID LOCATOR -->
+      <section class="card">
+        <h2>1. Συντεταγμένες ↔ Maidenhead Locator</h2>
+
+        <div class="btn-row">
+          <button type="button" class="primary" id="btnGps">📍 Εντοπισμός Θέσης (GPS)</button>
+          <button type="button" class="chip" data-lat="37.9838" data-lon="23.7275">Αθήνα</button>
+          <button type="button" class="chip" data-lat="40.6401" data-lon="22.9444">Θεσσαλονίκη</button>
+          <button type="button" class="chip" data-lat="38.2466" data-lon="21.7346">Πάτρα</button>
+          <button type="button" class="chip" data-lat="35.3387" data-lon="25.1442">Ηράκλειο</button>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="latInput">Γεωγρ. Πλάτος <span class="unit">Lat (°)</span></label>
+            <input id="latInput" type="number" step="any" min="-90" max="90" value="37.9838" />
+          </div>
+          <div>
+            <label for="lonInput">Γεωγρ. Μήκος <span class="unit">Lon (°)</span></label>
+            <input id="lonInput" type="number" step="any" min="-180" max="180" value="23.7275" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="gridOut">Υπολογισμένο Locator</label>
+            <input id="gridOut" type="text" class="mono" value="KM17vx" />
+          </div>
+          <div>
+            <label for="gridPrecision">Ακρίβεια</label>
+            <select id="gridPrecision">
+              <option value="4">4 χαρακτήρες (Field + Square)</option>
+              <option value="6" selected>6 χαρακτήρες (Subsquare - QSO)</option>
+              <option value="8">8 χαρακτήρες (Extended)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" id="btnCopyMyGrid">📋 Αντιγραφή στο «Δικό μου Grid»</button>
+          <button type="button" id="btnGridToCoords">🔄 Μετατροπή Grid → Συντεταγμένες</button>
+        </div>
+
+        <div id="gridBoundsPill" class="info-pill">Κέντρο τετραγώνου: —</div>
+      </section>
+
+      <!-- 2. DISTANCE & BEARING BETWEEN TWO GRIDS -->
+      <section class="card">
+        <h2>2. Απόσταση & Αζιμούθιο (QSO Bearing)</h2>
+
+        <div class="field-row">
+          <div>
+            <label for="myGrid">Δικό μου Grid Locator</label>
+            <input id="myGrid" type="text" class="mono" maxlength="8" value="KM17vx" placeholder="π.χ. KM17vx" />
+          </div>
+          <div>
+            <label for="dxGrid">Grid Ανταποκριτή (DX)</label>
+            <input id="dxGrid" type="text" class="mono" maxlength="8" value="JN48" placeholder="π.χ. JN48 ή KN10lo" />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" id="btnSwapGrids">⇄ Εναλλαγή (Swap)</button>
+          <button type="button" class="chip" data-dx="KN10lo">Θεσ/νίκη (KN10lo)</button>
+          <button type="button" class="chip" data-dx="JN48">Κεντρ. Ευρώπη (JN48)</button>
+          <button type="button" class="chip" data-dx="IO91">Λονδίνο (IO91)</button>
+          <button type="button" class="chip" data-dx="FN31">Ν. Υόρκη (FN31)</button>
+        </div>
+
+        <div class="compass-wrap">
+          <svg viewBox="0 0 220 220" width="210" height="210" aria-label="Πυξίδα αζιμουθίου">
+            <circle cx="110" cy="110" r="94" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
+            <circle cx="110" cy="110" r="72" fill="none" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 3" />
+            <text x="110" y="30" text-anchor="middle" font-size="12" font-weight="700" fill="#e65100">N (0°)</text>
+            <text x="192" y="114" text-anchor="middle" font-size="11" font-weight="700" fill="#475569">E</text>
+            <text x="110" y="198" text-anchor="middle" font-size="11" font-weight="700" fill="#475569">S</text>
+            <text x="28" y="114" text-anchor="middle" font-size="11" font-weight="700" fill="#475569">W</text>
+
+            <!-- Bearing needle -->
+            <g id="bearingNeedle" transform="rotate(0 110 110)">
+              <line x1="110" y1="110" x2="110" y2="36" stroke="#e65100" stroke-width="3.5" stroke-linecap="round" />
+              <polygon points="110,26 104,40 116,40" fill="#e65100" />
+              <line x1="110" y1="110" x2="110" y2="176" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 3" />
+            </g>
+            <circle cx="110" cy="110" r="6" fill="#0f172a" />
+          </svg>
+        </div>
+      </section>
+    </div>
+
+    <!-- 3. RESULTS -->
+    <section class="card">
+      <h2>3. Αποτελέσματα Ζεύξης (QSO)</h2>
+      <div class="results-grid">
+        <div class="kpi highlight">
+          <div class="label">Απόσταση (Short Path)</div>
+          <div id="distKmVal" class="val">—</div>
+          <div id="distMiSub" class="sub">Μίλια: —</div>
+        </div>
+        <div class="kpi highlight">
+          <div class="label">Αζιμούθιο Κεραίας (Bearing)</div>
+          <div id="bearingVal" class="val">—</div>
+          <div id="longPathSub" class="sub">Long Path: —</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Αντίστροφο Αζιμούθιο (Από DX)</div>
+          <div id="revBearingVal" class="val">—</div>
+          <div id="revBearingSub" class="sub">Διεύθυνση επιστροφής</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Συντεταγμένες Κέντρου Grids</div>
+          <div id="pairCoordsVal" class="val" style="font-size:0.95rem;">—</div>
+          <div id="pairStatusSub" class="sub">Έλεγχος εγκυρότητας</div>
+        </div>
+      </div>
+
+      <div class="details">
+        <div id="qsoSummaryInfo">Σύνοψη QSO: —</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function formatMaidenhead(raw) {
+      const s = String(raw || "").trim();
+      if (s.length < 4) return s.toUpperCase();
+      const p1 = s.slice(0, 2).toUpperCase();
+      const p2 = s.slice(2, 4);
+      const p3 = s.slice(4, 6).toLowerCase();
+      const p4 = s.slice(6, 8);
+      return p1 + p2 + p3 + p4;
+    }
+
+    function latLonToGrid(lat, lon, precision = 6) {
+      const clampedLat = Math.max(-89.9999, Math.min(89.9999, lat));
+      const clampedLon = Math.max(-179.9999, Math.min(179.9999, lon));
+
+      let adjLon = clampedLon + 180.0;
+      let adjLat = clampedLat + 90.0;
+
+      const A = "A".charCodeAt(0);
+      const a = "a".charCodeAt(0);
+
+      // 1st pair: Field (20 deg lon x 10 deg lat)
+      const fLon = Math.floor(adjLon / 20);
+      const fLat = Math.floor(adjLat / 10);
+      let grid = String.fromCharCode(A + fLon) + String.fromCharCode(A + fLat);
+
+      adjLon -= fLon * 20;
+      adjLat -= fLat * 10;
+
+      // 2nd pair: Square (2 deg lon x 1 deg lat)
+      const sLon = Math.floor(adjLon / 2);
+      const sLat = Math.floor(adjLat / 1);
+      grid += String(sLon) + String(sLat);
+
+      if (precision >= 6) {
+        adjLon -= sLon * 2;
+        adjLat -= sLat * 1;
+
+        // 3rd pair: Subsquare (5 min lon x 2.5 min lat)
+        const subLon = Math.floor(adjLon / (2 / 24));
+        const subLat = Math.floor(adjLat / (1 / 24));
+        grid += String.fromCharCode(a + subLon) + String.fromCharCode(a + subLat);
+
+        if (precision >= 8) {
+          adjLon -= subLon * (2 / 24);
+          adjLat -= subLat * (1 / 24);
+
+          const extLon = Math.floor(adjLon / (2 / 240));
+          const extLat = Math.floor(adjLat / (1 / 240));
+          grid += String(extLon) + String(extLat);
+        }
+      }
+
+      return grid;
+    }
+
+    function gridToLatLon(rawGrid) {
+      const g = String(rawGrid || "").trim().toUpperCase();
+      if (!/^[A-R]{2}[0-9]{2}([A-X]{2}([0-9]{2})?)?$/.test(g)) {
+        return null;
+      }
+
+      const A = "A".charCodeAt(0);
+      let lon = -180.0 + (g.charCodeAt(0) - A) * 20.0 + parseInt(g[2], 10) * 2.0;
+      let lat = -90.0 + (g.charCodeAt(1) - A) * 10.0 + parseInt(g[3], 10) * 1.0;
+
+      let dLon = 2.0;
+      let dLat = 1.0;
+
+      if (g.length >= 6) {
+        dLon = 2.0 / 24.0;
+        dLat = 1.0 / 24.0;
+        lon += (g.charCodeAt(4) - A) * dLon;
+        lat += (g.charCodeAt(5) - A) * dLat;
+      }
+
+      if (g.length === 8) {
+        dLon = 2.0 / 240.0;
+        dLat = 1.0 / 240.0;
+        lon += parseInt(g[6], 10) * dLon;
+        lat += parseInt(g[7], 10) * dLat;
+      }
+
+      return {
+        lat: lat + dLat / 2.0,
+        lon: lon + dLon / 2.0,
+        minLat: lat,
+        maxLat: lat + dLat,
+        minLon: lon,
+        maxLon: lon + dLon
+      };
+    }
+
+    function calcDistanceAndBearing(lat1, lon1, lat2, lon2) {
+      const R = 6371.0; // Earth mean radius in km
+      const toRad = (d) => (d * Math.PI) / 180.0;
+      const toDeg = (r) => (r * 180.0) / Math.PI;
+
+      const p1 = toRad(lat1);
+      const p2 = toRad(lat2);
+      const dp = toRad(lat2 - lat1);
+      const dl = toRad(lon2 - lon1);
+
+      const a =
+        Math.sin(dp / 2) * Math.sin(dp / 2) +
+        Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distKm = R * c;
+
+      const y = Math.sin(dl) * Math.cos(p2);
+      const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+      const bearing = (toDeg(Math.atan2(y, x)) + 360.0) % 360.0;
+
+      // Reverse bearing
+      const yRev = Math.sin(-dl) * Math.cos(p1);
+      const xRev = Math.cos(p2) * Math.sin(p1) - Math.sin(p2) * Math.cos(p1) * Math.cos(-dl);
+      const revBearing = (toDeg(Math.atan2(yRev, xRev)) + 360.0) % 360.0;
+
+      return { distKm, bearing, revBearing };
+    }
+
+    const latInput = document.getElementById("latInput");
+    const lonInput = document.getElementById("lonInput");
+    const gridOut = document.getElementById("gridOut");
+    const gridPrecision = document.getElementById("gridPrecision");
+    const myGridInput = document.getElementById("myGrid");
+    const dxGridInput = document.getElementById("dxGrid");
+
+    function updateFromCoords() {
+      const lat = parseFloat(String(latInput.value).replace(",", "."));
+      const lon = parseFloat(String(lonInput.value).replace(",", "."));
+      const prec = parseInt(gridPrecision.value, 10) || 6;
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+      const g = latLonToGrid(lat, lon, prec);
+      gridOut.value = g;
+      const box = gridToLatLon(g);
+      if (box) {
+        document.getElementById("gridBoundsPill").textContent =
+          `Κέντρο ${g}: ${box.lat.toFixed(4)}° N, ${box.lon.toFixed(4)}° E`;
+      }
+    }
+
+    function updateFromGridInput() {
+      const box = gridToLatLon(gridOut.value);
+      if (!box) {
+        document.getElementById("gridBoundsPill").textContent =
+          "Μη έγκυρο Maidenhead Grid (π.χ. KM17vx ή KN10)";
+        return;
+      }
+      gridOut.value = formatMaidenhead(gridOut.value);
+      latInput.value = box.lat.toFixed(4);
+      lonInput.value = box.lon.toFixed(4);
+      document.getElementById("gridBoundsPill").textContent =
+        `Κέντρο ${gridOut.value}: ${box.lat.toFixed(4)}°, ${box.lon.toFixed(4)}°`;
+    }
+
+    function updateQsoPath() {
+      const p1 = gridToLatLon(myGridInput.value);
+      const p2 = gridToLatLon(dxGridInput.value);
+
+      if (!p1 || !p2) {
+        document.getElementById("distKmVal").textContent = "—";
+        document.getElementById("distMiSub").textContent = "Έλεγξε τη μορφή των Grid Locators";
+        document.getElementById("bearingVal").textContent = "—";
+        document.getElementById("longPathSub").textContent = "Long Path: —";
+        document.getElementById("revBearingVal").textContent = "—";
+        document.getElementById("pairCoordsVal").textContent = "Μη έγκυρο Grid";
+        document.getElementById("pairStatusSub").textContent = "Παράδειγμα: KM17vx και KN10lo";
+        document.getElementById("qsoSummaryInfo").textContent =
+          "Σύνοψη QSO: Συμπλήρωσε δύο έγκυρα Maidenhead Grid Locators (4, 6 ή 8 χαρακτήρων).";
+        return;
+      }
+
+      const g1Fmt = formatMaidenhead(myGridInput.value);
+      const g2Fmt = formatMaidenhead(dxGridInput.value);
+
+      const { distKm, bearing, revBearing } = calcDistanceAndBearing(p1.lat, p1.lon, p2.lat, p2.lon);
+      const distMi = distKm * 0.621371;
+      const longPathDeg = (bearing + 180.0) % 360.0;
+
+      document.getElementById("distKmVal").textContent = `${distKm.toFixed(1)} km`;
+      document.getElementById("distMiSub").textContent = `${distMi.toFixed(1)} miles`;
+
+      document.getElementById("bearingVal").textContent = `${Math.round(bearing)}°`;
+      document.getElementById("longPathSub").textContent = `Long Path: ${Math.round(longPathDeg)}°`;
+
+      document.getElementById("revBearingVal").textContent = `${Math.round(revBearing)}°`;
+      document.getElementById("pairCoordsVal").textContent = `${g1Fmt} → ${g2Fmt}`;
+      document.getElementById("pairStatusSub").textContent =
+        `${p1.lat.toFixed(2)}°, ${p1.lon.toFixed(2)}° → ${p2.lat.toFixed(2)}°, ${p2.lon.toFixed(2)}°`;
+
+      document.getElementById("qsoSummaryInfo").textContent =
+        `Από ${g1Fmt} προς ${g2Fmt}: απόσταση ${distKm.toFixed(1)} km, στρέψε την κεραία στις ${Math.round(bearing)}° (ο ανταποκριτής στρέφει στις ${Math.round(revBearing)}°).`;
+
+      document.getElementById("bearingNeedle").setAttribute("transform", `rotate(${bearing.toFixed(1)} 110 110)`);
+    }
+
+    latInput.addEventListener("input", updateFromCoords);
+    lonInput.addEventListener("input", updateFromCoords);
+    gridPrecision.addEventListener("change", updateFromCoords);
+
+    document.getElementById("btnGridToCoords").addEventListener("click", updateFromGridInput);
+    gridOut.addEventListener("change", updateFromGridInput);
+
+    document.getElementById("btnCopyMyGrid").addEventListener("click", () => {
+      myGridInput.value = formatMaidenhead(gridOut.value);
+      updateQsoPath();
+    });
+
+    document.getElementById("btnSwapGrids").addEventListener("click", () => {
+      const tmp = myGridInput.value;
+      myGridInput.value = dxGridInput.value;
+      dxGridInput.value = tmp;
+      updateQsoPath();
+    });
+
+    document.querySelectorAll("button.chip[data-lat]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        latInput.value = btn.dataset.lat;
+        lonInput.value = btn.dataset.lon;
+        updateFromCoords();
+      });
+    });
+
+    document.querySelectorAll("button.chip[data-dx]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        dxGridInput.value = btn.dataset.dx;
+        updateQsoPath();
+      });
+    });
+
+    myGridInput.addEventListener("input", updateQsoPath);
+    dxGridInput.addEventListener("input", updateQsoPath);
+
+    document.getElementById("btnGps").addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        document.getElementById("gridBoundsPill").textContent = "Ο browser δεν υποστηρίζει GPS Geolocation.";
+        return;
+      }
+      document.getElementById("gridBoundsPill").textContent = "Αναζήτηση τοποθεσίας...";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          latInput.value = pos.coords.latitude.toFixed(5);
+          lonInput.value = pos.coords.longitude.toFixed(5);
+          updateFromCoords();
+          myGridInput.value = gridOut.value;
+          updateQsoPath();
+        },
+        () => {
+          document.getElementById("gridBoundsPill").textContent =
+            "Δεν δόθηκε άδεια τοποθεσίας. Μπορείς να βάλεις συντεταγμένες ή πόλη.";
+        }
+      );
+    });
+
+    updateFromCoords();
+    updateQsoPath();
+  </script>
+</body>
+</html>
