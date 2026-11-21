@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Υπολογιστής Μήκους Κεραίας Διπόλου & SWR / Κερδοφορίας — SvZone.eu</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #16202a;
+      --muted: #5c6b7a;
+      --accent: #e65100;
+      --accent-soft: #fff3e0;
+      --border: #dde3ea;
+      --ok: #1b5e20;
+      --ok-bg: #e8f5e9;
+      --mid: #8d6e00;
+      --mid-bg: #fff8e1;
+      --warn: #b71c1c;
+      --warn-bg: #ffebee;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding: 16px;
+    }
+
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 1.25rem;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid #ffcc80;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    span.unit {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 0.78rem;
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #c8d1dc;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input[type="number"]:focus, select:focus {
+      outline: 2px solid rgba(230, 81, 0, 0.25);
+      border-color: var(--accent);
+    }
+
+    input:disabled {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+
+    .info-pill {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .diagram-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafbfd;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .diagram-box svg {
+      width: 100%;
+      height: 175px;
+      display: block;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fafbfd;
+    }
+
+    .kpi.highlight {
+      border-color: #ffcc80;
+      background: #fffaf3;
+    }
+
+    .kpi .label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi .val {
+      font-size: 1.22rem;
+      font-weight: 700;
+    }
+
+    .kpi .sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .verdict {
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      margin-bottom: 12px;
+    }
+
+    .verdict.ok { background: var(--ok-bg); color: var(--ok); border: 1px solid #a5d6a7; }
+    .verdict.mid { background: var(--mid-bg); color: var(--mid); border: 1px solid #ffe082; }
+    .verdict.warn { background: var(--warn-bg); color: var(--warn); border: 1px solid #ef9a9a; }
+
+    .details {
+      font-size: 0.86rem;
+      color: var(--muted);
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .details div {
+      margin-bottom: 5px;
+    }
+
+    .details div:last-child {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Υπολογιστής Μήκους Κεραίας Διπόλου & SWR / Κερδοφορίας</h1>
+        <p>Διαστάσεις ημικύματος διπόλου & Inverted-V (VF 0.95), απώλειες γραμμής και ισχύς στην κεραία</p>
+      </div>
+      <div class="badge">SVZONE ANTENNA LAB</div>
+    </header>
+
+    <div class="grid">
+      <!-- 1. FREQUENCY & DIPOLE / INVERTED-V GEOMETRY -->
+      <section class="card">
+        <h2>1. Συχνότητα & Γεωμετρία Διπόλου</h2>
+
+        <div class="field-row">
+          <div>
+            <label for="bandSelect">Μπάντα</label>
+            <select id="bandSelect">
+              <option value="custom">Ελεύθερη Συχνότητα</option>
+              <option value="1.850">160m (1.850 MHz)</option>
+              <option value="3.600">80m (3.600 MHz)</option>
+              <option value="5.357">60m (5.357 MHz)</option>
+              <option value="7.100" selected>40m (7.100 MHz)</option>
+              <option value="10.120">30m (10.120 MHz)</option>
+              <option value="14.150">20m (14.150 MHz)</option>
+              <option value="18.100">17m (18.100 MHz)</option>
+              <option value="21.200">15m (21.200 MHz)</option>
+              <option value="24.930">12m (24.930 MHz)</option>
+              <option value="28.450">10m (28.450 MHz)</option>
+              <option value="50.150">6m (50.150 MHz)</option>
+              <option value="145.500">2m (145.500 MHz)</option>
+              <option value="433.500">70cm (433.500 MHz)</option>
+            </select>
+          </div>
+          <div>
+            <label for="freqMhz">Συχνότητα <span class="unit">MHz</span></label>
+            <input id="freqMhz" type="number" step="any" min="0.5" max="3000" value="7.100" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="velFactor">Συντ. Βράχυνσης <span class="unit">VF (σύρμα)</span></label>
+            <input id="velFactor" type="number" step="0.01" min="0.5" max="1.0" value="0.95" />
+          </div>
+          <div>
+            <label for="invAngle">Γωνία Inverted-V <span class="unit">μοίρες (°)</span></label>
+            <select id="invAngle">
+              <option value="180">180° (Επίπεδο δίπολο)</option>
+              <option value="150">150° (Ήπια κλίση)</option>
+              <option value="120" selected>120° (Κλασικό Inverted-V)</option>
+              <option value="90">90° (Ορθή γωνία)</option>
+              <option value="75">75° (Στενή γωνία)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="apexHeight">Ύψος Κεντρικής Στήριξης / Κορυφής <span class="unit">m AGL</span></label>
+          <input id="apexHeight" type="number" step="any" min="0.5" max="200" value="10" />
+        </div>
+
+        <div class="diagram-box">
+          <svg viewBox="0 0 420 175" aria-label="Διάγραμμα διπόλου και Inverted-V">
+            <!-- Ground line -->
+            <line x1="16" y1="154" x2="404" y2="154" stroke="#94a3b8" stroke-width="2" />
+            <text x="24" y="168" font-size="10" fill="#64748b">Έδαφος</text>
+
+            <!-- Mast -->
+            <line x1="210" y1="34" x2="210" y2="154" stroke="#64748b" stroke-width="2.5" stroke-dasharray="4 3" />
+
+            <!-- Flat dipole dashed reference -->
+            <line id="svgFlatLeft" x1="210" y1="34" x2="65" y2="34" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="3 3" />
+            <line id="svgFlatRight" x1="210" y1="34" x2="355" y2="34" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="3 3" />
+
+            <!-- Active legs -->
+            <line id="svgLegLeft" x1="210" y1="34" x2="88" y2="105" stroke="#e65100" stroke-width="3.5" stroke-linecap="round" />
+            <line id="svgLegRight" x1="210" y1="34" x2="332" y2="105" stroke="#e65100" stroke-width="3.5" stroke-linecap="round" />
+
+            <!-- Center insulator / balun -->
+            <circle cx="210" cy="34" r="6" fill="#0f172a" stroke="#e65100" stroke-width="2" />
+
+            <!-- Labels -->
+            <text x="220" y="24" font-size="11" font-weight="700" fill="#0f172a">Balun / Τροφοδοσία</text>
+            <text id="svgAngleLabel" x="210" y="54" text-anchor="middle" font-size="11" font-weight="700" fill="#e65100">120°</text>
+            <text id="svgLeftLabel" x="128" y="72" text-anchor="middle" font-size="11" font-weight="700" fill="#16202a">Λεπτομέρειες</text>
+            <text id="svgRightLabel" x="292" y="72" text-anchor="middle" font-size="11" font-weight="700" fill="#16202a">Λεπτομέρειες</text>
+            <text id="svgHeightLabel" x="342" y="168" text-anchor="end" font-size="10" fill="#475569">Ύψος: 10.0 m</text>
+          </svg>
+        </div>
+      </section>
+
+      <!-- 2. COAX LINE, TX POWER & SWR -->
+      <section class="card">
+        <h2>2. Ομοαξονική Γραμμή, Ισχύς & SWR</h2>
+
+        <div class="field-row">
+          <div>
+            <label for="txPowerW">Ισχύς Πομπού <span class="unit">Watts</span></label>
+            <input id="txPowerW" type="number" step="any" min="0.01" max="5000" value="100" />
+          </div>
+          <div>
+            <label for="swrVal">Μετρημένο SWR <span class="unit">x : 1</span></label>
+            <input id="swrVal" type="number" step="0.05" min="1.0" max="20.0" value="1.5" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="coaxType">Ομοαξονικό Καλώδιο</label>
+          <select id="coaxType">
+            <option value="rg58">RG-58 (~18.0 dB/100m @ 145 MHz)</option>
+            <option value="rg213" selected>RG-213 (~8.2 dB/100m @ 145 MHz)</option>
+            <option value="h155">H-155 (~8.4 dB/100m @ 145 MHz)</option>
+            <option value="lmr400">LMR-400 (~4.8 dB/100m @ 145 MHz)</option>
+            <option value="custom">Χειροκίνητη απώλεια καλωδίου (dB/100m @ 145MHz)</option>
+          </select>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="coaxLenM">Μήκος Γραμμής <span class="unit">μέτρα (m)</span></label>
+            <input id="coaxLenM" type="number" step="any" min="0" max="500" value="20" />
+          </div>
+          <div>
+            <label for="customLoss145" id="customLossLabel">Απώλεια @ 145MHz <span class="unit">dB/100m</span></label>
+            <input id="customLoss145" type="number" step="any" min="0.1" max="100" value="8.2" disabled />
+          </div>
+        </div>
+
+        <div id="coaxLossPill" class="info-pill">Απώλεια γραμμής: —</div>
+
+        <div class="details" style="margin-top:12px;">
+          <div id="invNotes">Επίδραση Inverted-V: —</div>
+          <div id="swrNotes">Συντελεστής ανάκλασης & Return Loss: —</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 3. RESULTS -->
+    <section class="card">
+      <h2>3. Αποτελέσματα Υπολογισμού</h2>
+      <div id="verdict" class="verdict ok">Υπολογισμός σε εξέλιξη...</div>
+
+      <div class="results-grid">
+        <div class="kpi highlight">
+          <div class="label">Συνολικό Μήκος Διπόλου</div>
+          <div id="totalDipoleLen" class="val">—</div>
+          <div id="legLenSub" class="sub">Ανά σκέλος: —</div>
+        </div>
+
+        <div class="kpi">
+          <div class="label">Μήκος Σκέλους Inverted-V</div>
+          <div id="invLegLen" class="val">—</div>
+          <div id="invSpanSub" class="sub">Άνοιγμα άκρων: —</div>
+        </div>
+
+        <div class="kpi highlight">
+          <div class="label">Ισχύς στην Κεραία</div>
+          <div id="powerAtAntenna" class="val">—</div>
+          <div id="totalLossSub" class="sub">Συνολικές απώλειες: —</div>
+        </div>
+
+        <div class="kpi">
+          <div class="label">Επιστρεφόμενη Ισχύς</div>
+          <div id="reflectedPower" class="val">—</div>
+          <div id="fwdPowerSub" class="sub">Στην είσοδο κεραίας: —</div>
+        </div>
+      </div>
+
+      <div class="details">
+        <div id="wavelengthInfo">Μήκος κύματος & τύπος υπολογισμού: —</div>
+        <div id="mismatchInfo">Απώλεια ασυμφωνίας (Mismatch Loss) & συνολική απόδοση γραμμής: —</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Attenuation reference at 145 MHz in dB per 100 meters
+    const COAX_DB_100M_AT_145MHZ = {
+      rg58: 18.0,
+      rg213: 8.2,
+      h155: 8.4,
+      lmr400: 4.8
+    };
+
+    const bandSelect = document.getElementById("bandSelect");
+    const freqInput = document.getElementById("freqMhz");
+    const vfInput = document.getElementById("velFactor");
+    const invAngleSelect = document.getElementById("invAngle");
+    const apexHeightInput = document.getElementById("apexHeight");
+
+    const txPowerInput = document.getElementById("txPowerW");
+    const swrInput = document.getElementById("swrVal");
+    const coaxTypeSelect = document.getElementById("coaxType");
+    const coaxLenInput = document.getElementById("coaxLenM");
+    const customLossInput = document.getElementById("customLoss145");
+
+    function numVal(el, fallback, minVal) {
+      if (!el) return fallback;
+      const raw = String(el.value).replace(",", ".");
+      const n = parseFloat(raw);
+      if (!Number.isFinite(n)) return fallback;
+      return typeof minVal === "number" ? Math.max(minVal, n) : n;
+    }
+
+    function formatLen(meters) {
+      if (!Number.isFinite(meters) || meters <= 0) return "0.00 m";
+      if (meters < 1.0) return `${meters.toFixed(3)} m (${(meters * 100).toFixed(1)} cm)`;
+      return `${meters.toFixed(2)} m`;
+    }
+
+    function updateSvgDiagram(legMeters, invAngleDeg, apexM) {
+      const rad = (invAngleDeg * Math.PI) / 180;
+      const halfAngleRad = rad / 2;
+
+      const x0 = 210;
+      const y0 = 34;
+      const maxVisualLen = 115;
+
+      // Visual droop based on angle (180° = flat horizontal, 75° = steeper droop)
+      const sinHalf = Math.sin(halfAngleRad);
+      const cosHalf = Math.cos(halfAngleRad);
+
+      const dx = maxVisualLen * sinHalf;
+      const dy = maxVisualLen * cosHalf;
+
+      const leftX = x0 - dx;
+      const leftY = y0 + dy;
+      const rightX = x0 + dx;
+      const rightY = y0 + dy;
+
+      document.getElementById("svgLegLeft").setAttribute("x2", leftX.toFixed(1));
+      document.getElementById("svgLegLeft").setAttribute("y2", leftY.toFixed(1));
+      document.getElementById("svgLegRight").setAttribute("x2", rightX.toFixed(1));
+      document.getElementById("svgLegRight").setAttribute("y2", rightY.toFixed(1));
+
+      document.getElementById("svgAngleLabel").textContent = `${invAngleDeg}°`;
+      document.getElementById("svgLeftLabel").setAttribute("x", ((x0 + leftX) / 2 - 8).toFixed(1));
+      document.getElementById("svgLeftLabel").setAttribute("y", ((y0 + leftY) / 2 - 6).toFixed(1));
+      document.getElementById("svgLeftLabel").textContent = `${legMeters.toFixed(2)} m`;
+
+      document.getElementById("svgRightLabel").setAttribute("x", ((x0 + rightX) / 2 + 8).toFixed(1));
+      document.getElementById("svgRightLabel").setAttribute("y", ((y0 + rightY) / 2 - 6).toFixed(1));
+      document.getElementById("svgRightLabel").textContent = `${legMeters.toFixed(2)} m`;
+
+      document.getElementById("svgHeightLabel").textContent = `Ύψος κορυφής: ${apexM.toFixed(1)} m`;
+    }
+
+    function calculate() {
+      const freqMhz = numVal(freqInput, 7.1, 0.1);
+      const vf = numVal(vfInput, 0.95, 0.5);
+      const invAngleDeg = numVal(invAngleSelect, 120, 45);
+      const apexM = numVal(apexHeightInput, 10, 0);
+
+      const pTxW = numVal(txPowerInput, 100, 0.001);
+      const swr = numVal(swrInput, 1.5, 1.0);
+      const coaxType = coaxTypeSelect.value;
+      const coaxLenM = numVal(coaxLenInput, 20, 0);
+
+      customLossInput.disabled = coaxType !== "custom";
+
+      // Wavelength in free space (lambda = 300 / f_MHz)
+      const lambdaM = 300.0 / freqMhz;
+
+      // Half-wave dipole length = 0.5 * lambda * VF
+      // Note: at VF = 0.95 and f in MHz, 0.5 * (300/f) * 0.95 = 142.5 / f
+      const totalDipoleM = 0.5 * lambdaM * vf;
+      const singleLegM = totalDipoleM / 2.0;
+
+      // Inverted-V angle correction:
+      // Steeper V (smaller apex angle) slightly lowers resonant frequency -> slightly shorter wire (~0.02-0.04 factor)
+      // and lowers feedpoint impedance from ~73 ohm toward ~50 ohm around 100°-120°.
+      const angleFactor = 1.0 - 0.025 * Math.cos((invAngleDeg * Math.PI) / 180);
+      const invLegM = singleLegM * angleFactor;
+      const invSpanM = 2.0 * invLegM * Math.sin(((invAngleDeg / 2) * Math.PI) / 180);
+
+      // Coaxial line attenuation scaled with sqrt(f / 145 MHz)
+      const base145 = coaxType === "custom"
+        ? numVal(customLossInput, 8.2, 0.05)
+        : (COAX_DB_100M_AT_145MHZ[coaxType] || 8.2);
+
+      const attenPer100m = base145 * Math.sqrt(freqMhz / 145.0);
+      const lineLossOneWayDb = (attenPer100m / 100.0) * coaxLenM;
+
+      // Reflection coefficient Gamma = (SWR - 1) / (SWR + 1)
+      const gamma = (swr - 1.0) / (swr + 1.0);
+      const returnLossDb = gamma > 0 ? -20.0 * Math.log10(gamma) : 99.9;
+      const mismatchLossDb = -10.0 * Math.log10(Math.max(0.0001, 1.0 - gamma * gamma));
+
+      // Effective line loss with SWR reflection:
+      // L_eff = 10 * log10( (10^(L1/10) - Gamma^2 * 10^(-L1/10)) / (1 - Gamma^2) )
+      const a = Math.pow(10, lineLossOneWayDb / 10.0);
+      const g2 = gamma * gamma;
+      const effLineLossDb = g2 >= 0.9999
+        ? 99.9
+        : 10.0 * Math.log10(Math.max(0.001, (a - g2 / a) / (1.0 - g2)));
+
+      const totalPathLossDb = effLineLossDb + mismatchLossDb;
+      const powerToAntennaW = pTxW * Math.pow(10, -totalPathLossDb / 10.0);
+      const powerAtAntInputW = pTxW * Math.pow(10, -effLineLossDb / 10.0);
+      const reflectedPowerW = powerAtAntInputW * g2;
+
+      const efficiencyPct = Math.max(0, Math.min(100, (powerToAntennaW / pTxW) * 100.0));
+
+      document.getElementById("coaxLossPill").textContent =
+        `Απώλεια καλωδίου: ${lineLossOneWayDb.toFixed(2)} dB μονή διαδρομή (${attenPer100m.toFixed(2)} dB/100m @ ${freqMhz.toFixed(3)} MHz)`;
+
+      const estImpedanceOhm = Math.round(73 * Math.pow(Math.sin(((invAngleDeg / 2) * Math.PI) / 180), 0.65));
+      document.getElementById("invNotes").textContent =
+        `Inverted-V (${invAngleDeg}°): Εκτιμώμενη αντίσταση τροφοδοσίας ~${estImpedanceOhm} Ω (σε γωνία 90°–120° πλησιάζει τα 50 Ω).`;
+
+      document.getElementById("swrNotes").textContent =
+        `SWR ${swr.toFixed(2)}:1 → Συντελεστής ανάκλασης Γ = ${gamma.toFixed(3)} | Return Loss: ${gamma === 0 ? "∞" : returnLossDb.toFixed(1)} dB | Mismatch Loss: ${mismatchLossDb.toFixed(2)} dB.`;
+
+      document.getElementById("totalDipoleLen").textContent = formatLen(totalDipoleM);
+      document.getElementById("legLenSub").textContent = `Ανά σκέλος: ${formatLen(singleLegM)}`;
+
+      document.getElementById("invLegLen").textContent = formatLen(invLegM);
+      document.getElementById("invSpanSub").textContent = `Άνοιγμα άκρων: ${formatLen(invSpanM)}`;
+
+      document.getElementById("powerAtAntenna").textContent = `${powerToAntennaW.toFixed(1)} W`;
+      document.getElementById("totalLossSub").textContent =
+        `Απώλειες γραμμής+SWR: ${totalPathLossDb.toFixed(2)} dB (${efficiencyPct.toFixed(0)}% απόδοση)`;
+
+      document.getElementById("reflectedPower").textContent = `${reflectedPowerW.toFixed(1)} W`;
+      document.getElementById("fwdPowerSub").textContent =
+        `Προς κεραία: ${powerAtAntInputW.toFixed(1)} W (από ${pTxW.toFixed(1)} W TX)`;
+
+      document.getElementById("wavelengthInfo").textContent =
+        `Συχνότητα ${freqMhz.toFixed(3)} MHz → Μήκος κύματος λ = ${lambdaM.toFixed(2)} m | Συνολικό δίπολο = (150 / f) × VF × 0.95 = ${(150 / freqMhz * vf * 0.95).toFixed(2)} m.`;
+
+      document.getElementById("mismatchInfo").textContent =
+        `Η ενεργή απώλεια γραμμής λόγω στασίμων είναι ${effLineLossDb.toFixed(2)} dB και η απώλεια ασυμφωνίας στην κεραία ${mismatchLossDb.toFixed(2)} dB.`;
+
+      const verdictEl = document.getElementById("verdict");
+      verdictEl.className = "verdict";
+      if (swr <= 1.5 && efficiencyPct >= 70) {
+        verdictEl.classList.add("ok");
+        verdictEl.textContent = `Πολύ καλή προσαρμογή & απόδοση: SWR ${swr.toFixed(2)}:1, ${powerToAntennaW.toFixed(1)} W στην κεραία (${efficiencyPct.toFixed(0)}% της ισχύος TX).`;
+      } else if (swr <= 2.2 && efficiencyPct >= 45) {
+        verdictEl.classList.add("mid");
+        verdictEl.textContent = `Αποδεκτή λειτουργία με περιθώριο βελτίωσης: SWR ${swr.toFixed(2)}:1, ${powerToAntennaW.toFixed(1)} W στην κεραία (${efficiencyPct.toFixed(0)}% απόδοση).`;
+      } else {
+        verdictEl.classList.add("warn");
+        verdictEl.textContent = `Υψηλό SWR ή μεγάλες απώλειες: SWR ${swr.toFixed(2)}:1, μόνο ${powerToAntennaW.toFixed(1)} W φτάνουν στην κεραία (${efficiencyPct.toFixed(0)}% απόδοση).`;
+      }
+
+      updateSvgDiagram(invLegM, invAngleDeg, apexM);
+    }
+
+    bandSelect.addEventListener("change", () => {
+      if (bandSelect.value !== "custom") {
+        freqInput.value = bandSelect.value;
+      }
+      calculate();
+    });
+
+    freqInput.addEventListener("input", () => {
+      bandSelect.value = "custom";
+      calculate();
+    });
+
+    [vfInput, invAngleSelect, apexHeightInput, txPowerInput, swrInput, coaxTypeSelect, coaxLenInput, customLossInput]
+      .forEach((el) => {
+        el.addEventListener("input", calculate);
+        el.addEventListener("change", calculate);
+      });
+
+    calculate();
+  </script>
+</body>
+</html>
