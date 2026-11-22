@@ -1957,18 +1957,5 @@
       }
     });
   </script>
-  <script>
-  function sendHeight() {
-    // Υπολογίζει το πραγματικό ύψος του περιεχομένου
-    const height = document.documentElement.scrollHeight;
-    window.parent.postMessage({ type: 'setIframeHeight', height: height }, '*');
-  }
-
-  // Στέλνει το ύψος μόλις φορτώσει η σελίδα και κάθε φορά που αλλάζει μέγεθος (π.χ. όταν ανοίγει πίνακας ή αποτέλεσμα)
-  window.addEventListener('load', sendHeight);
-  window.addEventListener('resize', sendHeight);
-  const observer = new ResizeObserver(sendHeight);
-  observer.observe(document.body);
-</script>
 </body>
 </html>
