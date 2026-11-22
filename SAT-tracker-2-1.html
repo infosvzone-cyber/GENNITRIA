@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>24h Satellite Pass Radar & Live Tracker — SvZone.eu</title>
+  <script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
+  <script>
+    if (!window.satellite) {
+      var s = document.createElement("script");
+      s.src = "https://unpkg.com/satellite.js@5.0.0/dist/satellite.min.js";
+      document.head.appendChild(s);
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #16202a;
+      --muted: #5c6b7a;
+      --accent: #e65100;
+      --accent-soft: #fff3e0;
+      --border: #dde3ea;
+      --ok: #1b5e20;
+      --ok-bg: #e8f5e9;
+      --mid: #8d6e00;
+      --mid-bg: #fff8e1;
+      --warn: #b71c1c;
+      --warn-bg: #ffebee;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding: 16px;
+    }
+
+    .wrap {
+      max-width: 1260px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 1.25rem;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .badge {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid #ffcc80;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    span.unit {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 0.78rem;
+    }
+
+    input[type="number"], input[type="text"], select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #c8d1dc;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input.mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 11px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #fff;
+      color: var(--text);
+    }
+
+    button:hover {
+      background: #f1f5f9;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    button.primary:hover {
+      background: #bf360c;
+    }
+
+    button.chip {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: #ffcc80;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+    }
+
+    button.geo-toggle-btn {
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      border-radius: 999px;
+      border: 1.5px solid #cbd5e1;
+      background: #f8fafc;
+      color: #1e293b;
+      transition: all 0.15s ease;
+    }
+
+    button.geo-toggle-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 2px 6px rgba(230, 81, 0, 0.25);
+    }
+
+    .list-header-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 14px 0 6px;
+    }
+
+    .list-header-bar h3 {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .toggle-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .info-pill {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      color: #334155;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .freq-banner {
+      margin-top: 6px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      color: #5d4037;
+      font-size: 0.8rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-weight: 600;
+    }
+
+    .lock-note {
+      margin-top: 5px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .lock-note.locked {
+      color: var(--accent);
+    }
+
+    .visuals-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .vis-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fafbfd;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .vis-title {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fafbfd;
+    }
+
+    .kpi.highlight {
+      border-color: #ffcc80;
+      background: #fffaf3;
+    }
+
+    .kpi .label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .kpi .val {
+      font-size: 1.18rem;
+      font-weight: 700;
+    }
+
+    .kpi .sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .verdict {
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      margin-bottom: 12px;
+    }
+
+    .verdict.ok { background: var(--ok-bg); color: var(--ok); border: 1px solid #a5d6a7; }
+    .verdict.mid { background: var(--mid-bg); color: var(--mid); border: 1px solid #ffe082; }
+    .verdict.warn { background: var(--warn-bg); color: var(--warn); border: 1px solid #ef9a9a; }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table.matrix-table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+      margin-top: 6px;
+    }
+
+    table.matrix-table th,
+    table.matrix-table td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+      min-width: 185px;
+      max-width: 245px;
+      white-space: normal;
+    }
+
+    table.matrix-table th.attr-col,
+    table.matrix-table td.attr-col {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: #f8fafc;
+      font-weight: 700;
+      min-width: 155px;
+      max-width: 175px;
+      white-space: nowrap;
+      box-shadow: 2px 0 4px rgba(15, 23, 42, 0.04);
+    }
+
+    table.matrix-table thead th {
+      background: #f8fafc;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    table.matrix-table thead th.active-sat-col {
+      background: #fff3e0;
+      color: var(--accent);
+      border-bottom: 3px solid var(--accent);
+    }
+
+    table.matrix-table thead th.live-sat-col {
+      background: #e8f5e9;
+      color: var(--ok);
+    }
+
+    table.matrix-table td.sat-cell {
+      cursor: pointer;
+    }
+
+    table.matrix-table td.live-sat-col {
+      background: #f4fbf5;
+      font-weight: 600;
+    }
+
+    table.matrix-table td.active-sat-col {
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+
+    .freq-mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.76rem;
+      color: #1e293b;
+    }
+
+    .status-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.73rem;
+      font-weight: 700;
+    }
+
+    .tag-live {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border: 1px solid #a5d6a7;
+    }
+
+    .tag-soon {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid #ffcc80;
+    }
+
+    .tag-later {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .sources-footer {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .sources-footer h3 {
+      margin: 0 0 8px;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    .sources-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .sources-list li {
+      margin-bottom: 4px;
+    }
+
+    .sources-list a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .sources-list a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>24h Satellite Pass Radar & Live Tracker</h1>
+        <p>Λίστα περασμάτων LEO/MEO & εναλλαγή προβολής Γεωστατικών (GEO) ορατών από την Ελλάδα με Doppler downlink</p>
+      </div>
+      <div class="badge" id="headerBadge">24H RADAR</div>
+    </header>
+
+    <div class="grid">
+      <!-- 1. QTH VIA GEOLOCATION -->
+      <section class="card">
+        <h2>1. Θέση Σταθμού (QTH)</h2>
+
+        <div class="btn-row">
+          <button type="button" class="primary" id="btnGps">📍 Αυτόματη Θέση (Geolocation)</button>
+          <button type="button" class="chip" data-qth="KM17vx" data-lat="37.9838" data-lon="23.7275">Αθήνα</button>
+          <button type="button" class="chip" data-qth="KN10lo" data-lat="40.6401" data-lon="22.9444">Θεσ/νίκη</button>
+          <button type="button" class="chip" data-qth="KM08uf" data-lat="38.2466" data-lon="21.7346">Πάτρα</button>
+          <button type="button" class="chip" data-qth="KM25nh" data-lat="35.3387" data-lon="25.1442">Ηράκλειο</button>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="qthGrid">Grid Locator</label>
+            <input id="qthGrid" type="text" class="mono" maxlength="8" value="KM17vx" />
+          </div>
+          <div>
+            <label for="qthAltM">Υψόμετρο <span class="unit">m ASL</span></label>
+            <input id="qthAltM" type="number" step="any" min="0" max="5000" value="120" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="qthLat">Πλάτος <span class="unit">Lat (°)</span></label>
+            <input id="qthLat" type="number" step="any" min="-90" max="90" value="37.9838" />
+          </div>
+          <div>
+            <label for="qthLon">Μήκος <span class="unit">Lon (°)</span></label>
+            <input id="qthLon" type="number" step="any" min="-180" max="180" value="23.7275" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="minElFilter">Ελάχιστο Elevation <span class="unit">°</span></label>
+            <select id="minElFilter">
+              <option value="0" selected>0° (Πάνω από τον ορίζοντα)</option>
+              <option value="10">10° (Καθαρότερος ορίζοντας)</option>
+              <option value="20">20° (Υψηλά περάσματα)</option>
+            </select>
+          </div>
+          <div>
+            <label for="sortMode">Ταξινόμηση Λίστας</label>
+            <select id="sortMode">
+              <option value="time" selected>Χρονικά / Γεωγρ. Μήκος</option>
+              <option value="maxEl">Κατά Μέγιστο Elevation</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="toggle-line">
+          <input type="checkbox" id="autoSwitchToggle" />
+          Αυτόματη μετάβαση σε ενεργό πέρασμα (όταν δεν έχεις επιλέξει χειροκίνητα δορυφόρο)
+        </label>
+
+        <div id="qthPill" class="info-pill">QTH: 37.9838° N, 23.7275° E</div>
+      </section>
+
+      <!-- 2. ACTIVE / SELECTED SATELLITE LIVE VIEW -->
+      <section class="card">
+        <h2>2. Ζωντανά Δεδομένα Επιλεγμένου / Ενεργού Δορυφόρου</h2>
+
+        <div class="field">
+          <label for="activeSatSelect">Παρακολουθούμενος Δορυφόρος & Συχνότητες UP/DN</label>
+          <select id="activeSatSelect"></select>
+          <div id="activeFreqBanner" class="freq-banner">UP: — | DN: —</div>
+          <div id="selectionLockNote" class="lock-note">Επιλογή: Αυτόματη παρακολούθηση</div>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="dopplerDnMhz">Downlink Αναφοράς <span class="unit">MHz</span></label>
+            <input id="dopplerDnMhz" type="number" step="0.001" min="1" max="100000" value="437.800" />
+          </div>
+          <div>
+            <label for="dopplerRxMhz">Διορθωμένη Λήψη RX <span class="unit">MHz</span></label>
+            <input id="dopplerRxMhz" type="text" class="mono" value="—" readonly />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="primary" id="btnScan24h">🔄 Σάρωση Περασμάτων 24h</button>
+          <button type="button" id="btnToggleLive">⏸ Παύση Live</button>
+          <button type="button" id="btnPickNext">⏭ Επόμενος Που Περνάει</button>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="liveLat">Πλάτος Δορυφόρου <span class="unit">°</span></label>
+            <input id="liveLat" type="text" class="mono" value="—" readonly />
+          </div>
+          <div>
+            <label for="liveLon">Μήκος Δορυφόρου <span class="unit">°</span></label>
+            <input id="liveLon" type="text" class="mono" value="—" readonly />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div>
+            <label for="liveAlt">Ύψος <span class="unit">km</span></label>
+            <input id="liveAlt" type="text" class="mono" value="—" readonly />
+          </div>
+          <div>
+            <label for="liveCountdown">Κατάσταση / Χρόνος</label>
+            <input id="liveCountdown" type="text" class="mono" value="—" readonly />
+          </div>
+        </div>
+
+        <div id="tleStatusPill" class="info-pill">Εκκίνηση υπολογισμών τροχιάς...</div>
+
+        <div class="visuals-row">
+          <div class="vis-box">
+            <div class="vis-title">Αζιμούθιο (Azimuth)</div>
+            <svg viewBox="0 0 160 135" width="145" height="125">
+              <circle cx="80" cy="70" r="52" fill="#fff" stroke="#cbd5e1" stroke-width="2" />
+              <text x="80" y="29" text-anchor="middle" font-size="10" font-weight="700" fill="#e65100">N</text>
+              <text x="124" y="74" text-anchor="middle" font-size="10" font-weight="700" fill="#475569">E</text>
+              <text x="80" y="116" text-anchor="middle" font-size="10" font-weight="700" fill="#475569">S</text>
+              <text x="36" y="74" text-anchor="middle" font-size="10" font-weight="700" fill="#475569">W</text>
+              <g id="azNeedle" transform="rotate(0 80 70)">
+                <line x1="80" y1="70" x2="80" y2="27" stroke="#e65100" stroke-width="3" stroke-linecap="round" />
+                <polygon points="80,19 75,30 85,30" fill="#e65100" />
+              </g>
+              <circle cx="80" cy="70" r="4.5" fill="#0f172a" />
+            </svg>
+          </div>
+
+          <div class="vis-box">
+            <div class="vis-title">Ανύψωση (Elevation)</div>
+            <svg viewBox="0 0 160 135" width="150" height="125">
+              <!-- Ορίζοντας -->
+              <line x1="10" y1="108" x2="150" y2="108" stroke="#64748b" stroke-width="2" />
+              <!-- Τόξο ανύψωσης 0°..90° με βάση στο (80, 108) και κορυφή ανύψωσης στα αριστερά (12, 108 -> 80, 40) -->
+              <path d="M 12 108 A 68 68 0 0 1 80 40" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3 3" />
+              <!-- Σταθερή βάση (80, 108) -> κινούμενη ένδειξη (elSatDot) -->
+              <line id="elBeam" x1="80" y1="108" x2="12" y2="108" stroke="#e65100" stroke-width="3.5" stroke-linecap="round" />
+              <circle id="elSatDot" cx="12" cy="108" r="5" fill="#0f172a" stroke="#e65100" stroke-width="2" />
+              <circle cx="80" cy="108" r="3.5" fill="#475569" />
+              <text id="elSvgLabel" x="116" y="42" text-anchor="middle" font-size="11" font-weight="700" fill="#e65100">0.0°</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 3. LIVE ANGLES & 24H PASS LIST -->
+    <section class="card">
+      <h2>3. Ζωντανή Σκόπευση & Λίστα Δορυφόρων</h2>
+      <div id="verdict" class="verdict mid">Υπολογισμός περασμάτων...</div>
+
+      <div class="results-grid">
+        <div class="kpi highlight">
+          <div class="label">Ζωντανό Azimuth</div>
+          <div id="azVal" class="val">—</div>
+          <div id="azSub" class="sub">Τομέας: —</div>
+        </div>
+        <div class="kpi highlight">
+          <div class="label">Ζωντανό Elevation</div>
+          <div id="elVal" class="val">—</div>
+          <div id="elSub" class="sub">Ορατότητα: —</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Doppler Shift (Downlink)</div>
+          <div id="dopplerVal" class="val">—</div>
+          <div id="dopplerSub" class="sub">Ακτινική ταχύτητα: —</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Slant Range / FSPL @ 435 MHz</div>
+          <div id="slantVal" class="val">—</div>
+          <div id="fsplSub" class="sub">FSPL: — | Ώρα: —</div>
+        </div>
+      </div>
+
+      <div class="list-header-bar">
+        <h3 id="listTitleHeading">
+          Δορυφόροι που περνούν από το οπτικό πεδίο του QTH (Επόμενες 24 ώρες — LEO/MEO)
+        </h3>
+        <button type="button" id="btnToggleGeoMode" class="geo-toggle-btn">
+          🛰️ Εμφάνιση Μόνο Γεωστατικών (GEO)
+        </button>
+      </div>
+      <div id="listSummary" style="font-size:0.84rem; color:var(--muted); margin-bottom:6px;">
+        Κάθε στήλη είναι ένας δορυφόρος/πέρασμα (οριζόντια) και κάθε γραμμή ένα στοιχείο του (κάθετα). Πάτα σε στήλη για να κλειδώσεις τη σκόπευση σε αυτόν.
+      </div>
+      <div class="table-wrap">
+        <table class="matrix-table">
+          <thead id="passesMatrixHead">
+            <tr><th class="attr-col">Στοιχείο</th><th>Υπολογισμός...</th></tr>
+          </thead>
+          <tbody id="passesMatrixBody">
+            <tr><td class="attr-col">Κατάσταση</td><td>Υπολογισμός περασμάτων 24ώρου...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. DATA SOURCES & REFERENCES -->
+    <footer class="sources-footer">
+      <h3>Πηγές Δεδομένων & Υπολογισμών</h3>
+      <ul class="sources-list">
+        <li>
+          Στοιχεία τροχιάς TLE (Two-Line Elements):
+          <a href="https://tle.ivanstanojevic.me/" target="_blank" rel="noopener noreferrer">TLE API (tle.ivanstanojevic.me)</a>
+          & κατάλογοι δορυφόρων <a href="https://celestrak.org/" target="_blank" rel="noopener noreferrer">CelesTrak</a>.
+        </li>
+        <li>
+          Προώθηση τροχιάς SGP4/SDP4 & γεωδαιτικές μετατροπές:
+          <a href="https://github.com/shashwatak/satellite-js" target="_blank" rel="noopener noreferrer">satellite.js (GitHub)</a>.
+        </li>
+        <li>
+          Κατάλογος δορυφόρων, συχνότητες & ελληνικές αποστολές:
+          <a href="https://db.satnogs.org/" target="_blank" rel="noopener noreferrer">SatNOGS DB</a>,
+          <a href="https://www.amsat.org/" target="_blank" rel="noopener noreferrer">AMSAT</a>
+          & <a href="https://www.n2yo.com/" target="_blank" rel="noopener noreferrer">N2YO</a>.
+        </li>
+        <li>
+          Τοπικός εντοπισμός θέσης σταθμού (QTH): Browser Geolocation API και κωδικοποίηση Maidenhead Grid Locator.
+        </li>
+        <li>
+          Πλατφόρμα & συλλογή ραδιοερασιτεχνικών εργαλείων:
+          <a href="https://svzone.eu/" target="_blank" rel="noopener noreferrer">SvZone.eu</a>.
+        </li>
+      </ul>
+    </footer>
+  </div>
+
+  <script>
+    const EARTH_RADIUS_KM = 6371.0;
+    const SPEED_OF_LIGHT_KM_S = 299792.458;
+
+    const SATELLITE_GROUPS = [
+      "FM / APRS / ISS",
+      "Linear Transponders",
+      "Ελληνικοί & CubeSats / Telemetry",
+      "Μετεωρολογικοί (LRPT)",
+      "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)"
+    ];
+
+    const SATELLITES = [
+      // FM / APRS / ISS
+      {
+        noradId: "25544",
+        name: "ISS (ZARYA)",
+        group: "FM / APRS / ISS",
+        uplink: "145.990 FM (PL 67Hz) / 145.825 APRS",
+        downlink: "437.800 FM / 145.825 APRS",
+        orbit: { incDeg: 51.64, altKm: 420, revsPerDay: 15.50, phase0: 35, raan0: 18 },
+        tle: [
+          "1 25544U 98067A   26326.50000000  .00016717  00000-0  30123-3 0  9992",
+          "2 25544  51.6390  120.4120 0006820  85.1200  275.0400 15.49815234481239"
+        ]
+      },
+      {
+        noradId: "27607",
+        name: "SO-50 (SaudiSat-1C)",
+        group: "FM / APRS / ISS",
+        uplink: "145.850 MHz FM (PL 67.0 Hz)",
+        downlink: "436.795 MHz FM",
+        orbit: { incDeg: 64.56, altKm: 690, revsPerDay: 14.76, phase0: 110, raan0: 62 },
+        tle: [
+          "1 27607U 02058C   26326.45000000  .00001240  00000-0  21045-3 0  9995",
+          "2 27607  64.5620  210.1140 0021450 112.4400  248.1200 14.75621094356781"
+        ]
+      },
+      {
+        noradId: "43017",
+        name: "AO-91 (Fox-1B)",
+        group: "FM / APRS / ISS",
+        uplink: "435.250 MHz FM",
+        downlink: "145.960 MHz FM",
+        orbit: { incDeg: 97.62, altKm: 740, revsPerDay: 15.16, phase0: 200, raan0: 145 },
+        tle: [
+          "1 43017U 17073E   26326.48000000  .00000810  00000-0  14230-3 0  9991",
+          "2 43017  97.6240  145.8820 0010840  94.2100  266.0500 15.16420188478923"
+        ]
+      },
+      {
+        noradId: "61781",
+        name: "AO-123 (ASRTU-1)",
+        group: "FM / APRS / ISS",
+        uplink: "145.850 MHz FM (PL 67 Hz)",
+        downlink: "435.400 MHz FM",
+        orbit: { incDeg: 97.50, altKm: 515, revsPerDay: 15.38, phase0: 150, raan0: 105 },
+        tle: [
+          "1 61781U 24199AY  26326.46000000  .00000400  00000-0   8000-4 0  9991",
+          "2 61781  97.5000  130.0000 0010000  80.0000  280.0000 15.38000000123456"
+        ]
+      },
+      {
+        noradId: "40931",
+        name: "IO-86 (LAPAN-A2)",
+        group: "FM / APRS / ISS",
+        uplink: "145.880 MHz FM (PL 88.5 Hz)",
+        downlink: "435.880 MHz FM / APRS",
+        orbit: { incDeg: 6.00, altKm: 620, revsPerDay: 14.84, phase0: 45, raan0: 30 },
+        tle: [
+          "1 40931U 15052D   26326.40000000  .00000200  00000-0   5000-4 0  9990",
+          "2 40931   6.0010  110.2200 0012000  60.0000  300.0000 14.84000000123456"
+        ]
+      },
+      {
+        noradId: "43678",
+        name: "PO-101 (DIWATA-2)",
+        group: "FM / APRS / ISS",
+        uplink: "437.500 MHz FM (PL 141.3 Hz)",
+        downlink: "145.900 MHz FM",
+        orbit: { incDeg: 97.68, altKm: 615, revsPerDay: 14.85, phase0: 80, raan0: 170 },
+        tle: [
+          "1 43678U 18084F   26326.41000000  .00000250  00000-0   6200-4 0  9992",
+          "2 43678  97.6800  132.4000 0011500  85.0000  275.0000 14.85000000123456"
+        ]
+      },
+      {
+        noradId: "26931",
+        name: "NO-44 (PCSAT)",
+        group: "FM / APRS / ISS",
+        uplink: "145.825 MHz FM Packet",
+        downlink: "145.825 MHz FM Packet",
+        orbit: { incDeg: 67.20, altKm: 790, revsPerDay: 14.28, phase0: 130, raan0: 215 },
+        tle: [
+          "1 26931U 01043C   26326.43000000  .00000150  00000-0   4800-4 0  9991",
+          "2 26931  67.2000  175.1000 0018000  92.0000  268.0000 14.28000000123456"
+        ]
+      },
+
+      // Linear Transponders
+      {
+        noradId: "44909",
+        name: "RS-44 (DOSAAF-85)",
+        group: "Linear Transponders",
+        uplink: "145.935–145.995 MHz SSB/CW",
+        downlink: "435.610–435.670 MHz SSB/CW (Inv)",
+        orbit: { incDeg: 82.51, altKm: 1480, revsPerDay: 12.81, phase0: 270, raan0: 210 },
+        tle: [
+          "1 44909U 19096E   26326.51000000  .00000120  00000-0   4120-4 0  9998",
+          "2 44909  82.5120   88.3410 0004120 140.5500  219.6100 12.80912345321456"
+        ]
+      },
+      {
+        noradId: "43803",
+        name: "JO-97 (JY1Sat)",
+        group: "Linear Transponders",
+        uplink: "435.100–435.120 MHz LSB/CW",
+        downlink: "145.855–145.875 MHz USB/CW (Bcn 145.840)",
+        orbit: { incDeg: 97.45, altKm: 575, revsPerDay: 14.95, phase0: 25, raan0: 55 },
+        tle: [
+          "1 43803U 18099AX  26326.44000000  .00000500  00000-0   9500-4 0  9993",
+          "2 43803  97.4500  121.8000 0013000  70.0000  290.0000 14.95000000123456"
+        ]
+      },
+      {
+        noradId: "42761",
+        name: "CAS-4A",
+        group: "Linear Transponders",
+        uplink: "435.220 MHz SSB/CW",
+        downlink: "145.870 MHz SSB/CW (Bcn 145.855)",
+        orbit: { incDeg: 97.46, altKm: 535, revsPerDay: 15.08, phase0: 190, raan0: 125 },
+        tle: [
+          "1 42761U 17034B   26326.46000000  .00000420  00000-0   8400-4 0  9994",
+          "2 42761  97.4600  150.2000 0011000  82.0000  278.0000 15.08000000123456"
+        ]
+      },
+      {
+        noradId: "42759",
+        name: "CAS-4B",
+        group: "Linear Transponders",
+        uplink: "435.280 MHz SSB/CW",
+        downlink: "145.925 MHz SSB/CW (Bcn 145.910)",
+        orbit: { incDeg: 97.46, altKm: 535, revsPerDay: 15.08, phase0: 215, raan0: 132 },
+        tle: [
+          "1 42759U 17034A   26326.46000000  .00000420  00000-0   8400-4 0  9994",
+          "2 42759  97.4600  154.0000 0011000  84.0000  276.0000 15.08000000123456"
+        ]
+      },
+      {
+        noradId: "24278",
+        name: "FO-29 (JAS-2)",
+        group: "Linear Transponders",
+        uplink: "145.900–146.000 MHz SSB/CW",
+        downlink: "435.800–435.900 MHz SSB/CW (Bcn 435.795)",
+        orbit: { incDeg: 98.60, altKm: 900, revsPerDay: 13.53, phase0: 310, raan0: 245 },
+        tle: [
+          "1 24278U 96046B   26326.39000000  .00000110  00000-0   5100-4 0  9990",
+          "2 24278  98.6000  188.5000 0350000 110.0000  250.0000 13.53000000123456"
+        ]
+      },
+      {
+        noradId: "50466",
+        name: "HO-113 (XW-3 / CAS-9)",
+        group: "Linear Transponders",
+        uplink: "145.855–145.885 MHz LSB/CW",
+        downlink: "435.575–435.725 MHz USB/CW",
+        orbit: { incDeg: 97.50, altKm: 780, revsPerDay: 14.32, phase0: 55, raan0: 160 },
+        tle: [
+          "1 50466U 21125A   26326.47000000  .00000220  00000-0   6000-4 0  9991",
+          "2 50466  97.5000  141.7000 0012000  95.0000  265.0000 14.32000000123456"
+        ]
+      },
+      {
+        noradId: "39444",
+        name: "AO-73 (FUNcube-1)",
+        group: "Linear Transponders",
+        uplink: "435.130–435.150 MHz LSB/CW",
+        downlink: "145.950–145.970 MHz USB/CW (Bcn 145.935)",
+        orbit: { incDeg: 97.70, altKm: 600, revsPerDay: 14.88, phase0: 170, raan0: 195 },
+        tle: [
+          "1 39444U 13066AE  26326.41000000  .00000310  00000-0   7000-4 0  9992",
+          "2 39444  97.7000  166.9000 0014000  88.0000  272.0000 14.88000000123456"
+        ]
+      },
+
+      // Ελληνικοί & CubeSats / Telemetry
+      {
+        noradId: "68468",
+        name: "ERMIS-1 (GR CubeSat / ESA IOV)",
+        group: "Ελληνικοί & CubeSats / Telemetry",
+        uplink: "TLM / Command (UHF/S)",
+        downlink: "401.550 MHz FSK / 2218.000 MHz S-Band",
+        orbit: { incDeg: 97.45, altKm: 525, revsPerDay: 15.12, phase0: 18, raan0: 42 },
+        tle: [
+          "1 68468U 26058A   26326.48000000  .00000350  00000-0   7200-4 0  9991",
+          "2 68468  97.4500  118.4000 0011000  78.0000  282.0000 15.12000000123456"
+        ]
+      },
+      {
+        noradId: "68420",
+        name: "ERMIS-2 (GR CubeSat / ESA IOV)",
+        group: "Ελληνικοί & CubeSats / Telemetry",
+        uplink: "TLM / Command (UHF/S)",
+        downlink: "401.250 MHz FSK / 2218.000 MHz S-Band",
+        orbit: { incDeg: 97.45, altKm: 525, revsPerDay: 15.12, phase0: 92, raan0: 68 },
+        tle: [
+          "1 68420U 26058B   26326.48000000  .00000350  00000-0   7200-4 0  9991",
+          "2 68420  97.4500  122.1000 0011000  81.0000  279.0000 15.12000000123456"
+        ]
+      },
+      {
+        noradId: "64530",
+        name: "DUTHSat-2 (GR CubeSat)",
+        group: "Ελληνικοί & CubeSats / Telemetry",
+        uplink: "TLM / Command (S-Band)",
+        downlink: "2280.000 MHz S-Band TLM",
+        orbit: { incDeg: 97.40, altKm: 495, revsPerDay: 15.22, phase0: 145, raan0: 96 },
+        tle: [
+          "1 64530U 25135C   26326.45000000  .00000400  00000-0   8000-4 0  9990",
+          "2 64530  97.4000  144.8000 0012000  85.0000  275.0000 15.22000000123456"
+        ]
+      },
+      {
+        noradId: "59112",
+        name: "SONATE-2 (CubeSat APRS/SSTV)",
+        group: "Ελληνικοί & CubeSats / Telemetry",
+        uplink: "145.825 MHz APRS",
+        downlink: "145.880 / 437.025 MHz (Bcn 145.840)",
+        orbit: { incDeg: 97.45, altKm: 520, revsPerDay: 15.14, phase0: 210, raan0: 152 },
+        tle: [
+          "1 59112U 24043Q   26326.47000000  .00000320  00000-0   6900-4 0  9992",
+          "2 59112  97.4500  158.3000 0011000  79.0000  281.0000 15.14000000123456"
+        ]
+      },
+      {
+        noradId: "98209",
+        name: "ERMINAZ-2X (Digipeater/TLM)",
+        group: "Ελληνικοί & CubeSats / Telemetry",
+        uplink: "145.960 MHz FSK9k6",
+        downlink: "145.960 MHz FSK9k6 / CW",
+        orbit: { incDeg: 97.45, altKm: 520, revsPerDay: 15.15, phase0: 265, raan0: 184 },
+        tle: [
+          "1 98209U 26227XX  26326.46000000  .00000310  00000-0   6800-4 0  9990",
+          "2 98209  97.4500  171.6000 0012000  82.0000  278.0000 15.15000000123456"
+        ]
+      },
+      {
+        noradId: "64560",
+        name: "PARUS-T2 (3U Telemetry/APRS)",
+        group: "Ελληνικοί & CubeSats / Telemetry",
+        uplink: "APRS / TLM (PL 67Hz)",
+        downlink: "435.250 MHz Telemetry",
+        orbit: { incDeg: 97.50, altKm: 530, revsPerDay: 15.10, phase0: 120, raan0: 88 },
+        tle: [
+          "1 64560U 25138A   26326.45000000  .00000300  00000-0   7000-4 0  9991",
+          "2 64560  97.5000  136.2000 0012000  80.0000  280.0000 15.10000000123456"
+        ]
+      },
+      {
+        noradId: "40069",
+        name: "UKube-1 (Telemetry)",
+        group: "Ελληνικοί & CubeSats / Telemetry",
+        uplink: "TLM / Command (UHF)",
+        downlink: "145.840 / 437.425 MHz Telemetry",
+        orbit: { incDeg: 98.35, altKm: 630, revsPerDay: 14.82, phase0: 230, raan0: 178 },
+        tle: [
+          "1 40069U 14037D   26326.44000000  .00000180  00000-0   5500-4 0  9992",
+          "2 40069  98.3500  162.4000 0015000  92.0000  268.0000 14.82000000123456"
+        ]
+      },
+      {
+        noradId: "43855",
+        name: "SUCHAI-2 (CubeSat Telemetry)",
+        group: "Ελληνικοί & CubeSats / Telemetry",
+        uplink: "TLM / Command (UHF)",
+        downlink: "437.225 MHz Telemetry",
+        orbit: { incDeg: 97.40, altKm: 575, revsPerDay: 14.95, phase0: 300, raan0: 255 },
+        tle: [
+          "1 43855U 18099C   26326.43000000  .00000240  00000-0   6400-4 0  9990",
+          "2 43855  97.4000  198.1000 0012000  75.0000  285.0000 14.95000000123456"
+        ]
+      },
+
+      // Μετεωρολογικοί (LRPT)
+      {
+        noradId: "57166",
+        name: "Meteor-M N2-3",
+        group: "Μετεωρολογικοί (LRPT)",
+        uplink: "Receive Only (LRPT)",
+        downlink: "137.100 / 137.900 MHz LRPT QPSK",
+        orbit: { incDeg: 98.55, altKm: 825, revsPerDay: 14.19, phase0: 95, raan0: 75 },
+        tle: [
+          "1 57166U 23091A   26326.48000000  .00000105  00000-0   6500-4 0  9995",
+          "2 57166  98.5500  138.4000 0007000  90.0000  270.0000 14.19000000123456"
+        ]
+      },
+      {
+        noradId: "59051",
+        name: "Meteor-M N2-4",
+        group: "Μετεωρολογικοί (LRPT)",
+        uplink: "Receive Only (LRPT)",
+        downlink: "137.100 / 137.900 MHz LRPT QPSK",
+        orbit: { incDeg: 98.55, altKm: 825, revsPerDay: 14.19, phase0: 140, raan0: 115 },
+        tle: [
+          "1 59051U 24039A   26326.48000000  .00000105  00000-0   6500-4 0  9995",
+          "2 59051  98.5500  142.1000 0007000  91.0000  269.0000 14.19000000123456"
+        ]
+      },
+
+      // Γεωστατικοί (GEO — Ορατοί από Ελλάδα)
+      {
+        noradId: "43700",
+        name: "QO-100 / Es'hail 2 (25.9°E)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "2400.050–2400.490 MHz NB (S-Band)",
+        downlink: "10489.500–10490.000 MHz NB / ~10491.5–10499 WB",
+        isGeostationary: true,
+        geoLon: 25.9,
+        orbit: { incDeg: 0.02, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: 25.9 },
+        tle: [
+          "1 43700U 18090A   26326.50000000 -.00000200  00000-0  00000-0 0  9994",
+          "2 43700   0.0150  290.0000 0001500 320.0000  30.0000  1.00271000123456"
+        ]
+      },
+      {
+        noradId: "39215",
+        name: "Alphasat / Inmarsat-4A F4 (25.0°E)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "1626.5–1660.5 MHz L-Band",
+        downlink: "1525.0–1559.0 MHz L-Band (STD-C / AERO)",
+        isGeostationary: true,
+        geoLon: 25.0,
+        orbit: { incDeg: 0.05, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: 25.0 },
+        tle: [
+          "1 39215U 13038A   26326.50000000 -.00000150  00000-0  00000-0 0  9991",
+          "2 39215   0.0500  290.0000 0001200 310.0000  40.0000  1.00271000123456"
+        ]
+      },
+      {
+        noradId: "42942",
+        name: "Hellas Sat 3 (39.0°E — GR)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "13.75–14.50 GHz Ku-Band",
+        downlink: "10.70–12.75 GHz Ku-Band (Beacons)",
+        isGeostationary: true,
+        geoLon: 39.0,
+        orbit: { incDeg: 0.02, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: 39.0 },
+        tle: [
+          "1 42942U 17040A   26326.50000000 -.00000100  00000-0  00000-0 0  9992",
+          "2 42942   0.0200  290.0000 0001000 315.0000  35.0000  1.00271000123456"
+        ]
+      },
+      {
+        noradId: "44035",
+        name: "Hellas Sat 4 (39.0°E — GR)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "13.75–14.50 GHz Ku-Band",
+        downlink: "10.70–12.75 GHz Ku-Band",
+        isGeostationary: true,
+        geoLon: 39.0,
+        orbit: { incDeg: 0.02, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: 39.0 },
+        tle: [
+          "1 44035U 19007B   26326.50000000 -.00000100  00000-0  00000-0 0  9993",
+          "2 44035   0.0200  290.0000 0001000 315.0000  35.0000  1.00271000123456"
+        ]
+      },
+      {
+        noradId: "38552",
+        name: "Meteosat-10 / MSG-3 (0.0°E)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "Receive Only (EUMETSAT)",
+        downlink: "1691.000 / 1694.500 MHz L-Band HRIT/LRIT",
+        isGeostationary: true,
+        geoLon: 0.0,
+        orbit: { incDeg: 0.05, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: 0.0 },
+        tle: [
+          "1 38552U 12035B   26326.50000000 -.00000100  00000-0  00000-0 0  9990",
+          "2 38552   0.0500  290.0000 0001200 300.0000  50.0000  1.00271000123456"
+        ]
+      },
+      {
+        noradId: "40732",
+        name: "Meteosat-11 / MSG-4 (9.5°E)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "Receive Only (EUMETSAT)",
+        downlink: "1691.000 / 1694.500 MHz L-Band HRIT/LRIT",
+        isGeostationary: true,
+        geoLon: 9.5,
+        orbit: { incDeg: 0.05, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: 9.5 },
+        tle: [
+          "1 40732U 15034A   26326.50000000 -.00000100  00000-0  00000-0 0  9991",
+          "2 40732   0.0500  290.0000 0001200 305.0000  45.0000  1.00271000123456"
+        ]
+      },
+      {
+        noradId: "48274",
+        name: "Hotbird 13F / 13G (13.0°E)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "13.75–14.50 GHz Ku-Band",
+        downlink: "10.70–12.75 GHz Ku-Band (Dish Alignment)",
+        isGeostationary: true,
+        geoLon: 13.0,
+        orbit: { incDeg: 0.02, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: 13.0 },
+        tle: [
+          "1 48274U 22134A   26326.50000000 -.00000100  00000-0  00000-0 0  9992",
+          "2 48274   0.0200  290.0000 0001000 310.0000  40.0000  1.00271000123456"
+        ]
+      },
+      {
+        noradId: "37775",
+        name: "Astra 1N (19.2°E)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "13.75–14.50 GHz Ku-Band",
+        downlink: "10.70–12.75 GHz Ku-Band (Dish Alignment)",
+        isGeostationary: true,
+        geoLon: 19.2,
+        orbit: { incDeg: 0.02, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: 19.2 },
+        tle: [
+          "1 37775U 11041A   26326.50000000 -.00000100  00000-0  00000-0 0  9991",
+          "2 37775   0.0200  290.0000 0001000 310.0000  40.0000  1.00271000123456"
+        ]
+      },
+      {
+        noradId: "25153",
+        name: "Inmarsat-3 F5 (54.0°E)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "1626.5–1660.5 MHz L-Band",
+        downlink: "1537.0–1545.0 MHz L-Band (STD-C / EGC)",
+        isGeostationary: true,
+        geoLon: 54.0,
+        orbit: { incDeg: 1.20, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: 54.0 },
+        tle: [
+          "1 25153U 98006B   26326.50000000 -.00000100  00000-0  00000-0 0  9994",
+          "2 25153   1.2000  290.0000 0001500 310.0000  40.0000  1.00271000123456"
+        ]
+      },
+      {
+        noradId: "44903",
+        name: "Elektro-L N3 (76.0°E)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "Receive Only (ROSHYDROMET)",
+        downlink: "1691.000 MHz L-Band HRIT/LRIT",
+        isGeostationary: true,
+        geoLon: 76.0,
+        orbit: { incDeg: 0.05, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: 76.0 },
+        tle: [
+          "1 44903U 19095A   26326.50000000 -.00000100  00000-0  00000-0 0  9995",
+          "2 44903   0.0500  290.0000 0001200 310.0000  40.0000  1.00271000123456"
+        ]
+      },
+      {
+        noradId: "39476",
+        name: "Inmarsat-5 F1 / GX1 (62.6°E)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "Ka-Band",
+        downlink: "19.70–20.20 GHz Ka-Band Beacons",
+        isGeostationary: true,
+        geoLon: 62.6,
+        orbit: { incDeg: 0.02, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: 62.6 },
+        tle: [
+          "1 39476U 13073A   26326.50000000 -.00000100  00000-0  00000-0 0  9992",
+          "2 39476   0.0200  290.0000 0001000 310.0000  40.0000  1.00271000123456"
+        ]
+      },
+      {
+        noradId: "24812",
+        name: "Inmarsat-3 F4 (15.5°W / 344.5°E)",
+        group: "Γεωστατικοί (GEO — Ορατοί από Ελλάδα)",
+        uplink: "1626.5–1660.5 MHz L-Band",
+        downlink: "1537.0–1545.0 MHz L-Band (AOR-E STD-C)",
+        isGeostationary: true,
+        geoLon: -15.5,
+        orbit: { incDeg: 1.40, altKm: 35786, revsPerDay: 1.0027, phase0: 0, raan0: -15.5 },
+        tle: [
+          "1 24812U 97027A   26326.50000000 -.00000100  00000-0  00000-0 0  9993",
+          "2 24812   1.4000  290.0000 0001500 310.0000  40.0000  1.00271000123456"
+        ]
+      }
+    ];
+
+    const qthGridInput = document.getElementById("qthGrid");
+    const qthAltInput = document.getElementById("qthAltM");
+    const qthLatInput = document.getElementById("qthLat");
+    const qthLonInput = document.getElementById("qthLon");
+    const minElFilter = document.getElementById("minElFilter");
+    const sortModeSelect = document.getElementById("sortMode");
+    const autoSwitchToggle = document.getElementById("autoSwitchToggle");
+    const activeSatSelect = document.getElementById("activeSatSelect");
+    const activeFreqBanner = document.getElementById("activeFreqBanner");
+    const selectionLockNote = document.getElementById("selectionLockNote");
+    const dopplerDnInput = document.getElementById("dopplerDnMhz");
+    const dopplerRxInput = document.getElementById("dopplerRxMhz");
+    const btnToggleGeoMode = document.getElementById("btnToggleGeoMode");
+    const listTitleHeading = document.getElementById("listTitleHeading");
+
+    let selectedNoradId = "25544";
+    let manualSatLock = false;
+    let leoPasses = [];
+    let geoStatuses = [];
+    let showGeoOnly = false;
+    let isLiveRunning = true;
+    let tickInterval = null;
+    let usingFallbackEngine = false;
+    let manualDnOverrideNorad = null;
+
+    function updateLockNoteUI(satObj) {
+      if (manualSatLock) {
+        selectionLockNote.className = "lock-note locked";
+        selectionLockNote.textContent =
+          `🔒 Χειροκίνητη επιλογή: ${satObj ? satObj.name : selectedNoradId} (δεν αλλάζει αυτόματα)`;
+      } else {
+        selectionLockNote.className = "lock-note";
+        selectionLockNote.textContent =
+          autoSwitchToggle.checked
+            ? "⚡ Αυτόματη μετάβαση σε ενεργό πέρασμα (έως ότου επιλέξεις χειροκίνητα)"
+            : "Επιλογή από λίστα/μενού (χωρίς αυτόματη αλλαγή)";
+      }
+    }
+
+    function selectSatelliteManually(noradId) {
+      selectedNoradId = noradId;
+      manualSatLock = true;
+      manualDnOverrideNorad = null;
+      syncSelectDropdown();
+      tickLive();
+      renderPassesMatrix(Date.now());
+    }
+
+    function extractDefaultDownlinkMhz(downlinkStr) {
+      const match = String(downlinkStr || "").match(/(\d+(?:\.\d+)?)\s*MHz/i);
+      if (match) return parseFloat(match[1]);
+      const ghzMatch = String(downlinkStr || "").match(/(\d+(?:\.\d+)?)\s*GHz/i);
+      if (ghzMatch) return parseFloat(ghzMatch[1]) * 1000.0;
+      const anyNum = String(downlinkStr || "").match(/(\d+(?:\.\d+)?)/);
+      return anyNum ? parseFloat(anyNum[1]) : 435.0;
+    }
+
+    function populateGroupedSelect() {
+      activeSatSelect.innerHTML = "";
+      SATELLITE_GROUPS.forEach((groupName) => {
+        const items = SATELLITES.filter((s) => s.group === groupName);
+        if (!items.length) return;
+        const optgroup = document.createElement("optgroup");
+        optgroup.label = groupName;
+        items.forEach((sat) => {
+          const opt = document.createElement("option");
+          opt.value = sat.noradId;
+          opt.textContent = `${sat.name} [UP: ${sat.uplink} / DN: ${sat.downlink}]`;
+          if (sat.noradId === selectedNoradId) opt.selected = true;
+          optgroup.appendChild(opt);
+        });
+        activeSatSelect.appendChild(optgroup);
+      });
+    }
+
+    function updateActiveFreqBanner(satObj) {
+      if (!satObj) return;
+      activeFreqBanner.textContent =
+        `NORAD ${satObj.noradId} — Uplink: ${satObj.uplink}  |  Downlink: ${satObj.downlink}`;
+      if (manualDnOverrideNorad !== satObj.noradId) {
+        dopplerDnInput.value = extractDefaultDownlinkMhz(satObj.downlink).toFixed(3);
+      }
+      updateLockNoteUI(satObj);
+    }
+
+    function numVal(el, fallback) {
+      const n = parseFloat(String(el.value).replace(",", "."));
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    function latLonToGrid(lat, lon) {
+      const cLat = Math.max(-89.9999, Math.min(89.9999, lat));
+      const cLon = Math.max(-179.9999, Math.min(179.9999, lon));
+      let adjLon = cLon + 180.0;
+      let adjLat = cLat + 90.0;
+      const A = "A".charCodeAt(0);
+      const a = "a".charCodeAt(0);
+      const fLon = Math.floor(adjLon / 20);
+      const fLat = Math.floor(adjLat / 10);
+      let g = String.fromCharCode(A + fLon) + String.fromCharCode(A + fLat);
+      adjLon -= fLon * 20; adjLat -= fLat * 10;
+      const sLon = Math.floor(adjLon / 2);
+      const sLat = Math.floor(adjLat / 1);
+      g += String(sLon) + String(sLat);
+      adjLon -= sLon * 2; adjLat -= sLat * 1;
+      const subLon = Math.floor(adjLon / (2 / 24));
+      const subLat = Math.floor(adjLat / (1 / 24));
+      g += String.fromCharCode(a + subLon) + String.fromCharCode(a + subLat);
+      return g;
+    }
+
+    function gridToLatLon(rawGrid) {
+      const g = String(rawGrid || "").trim().toUpperCase();
+      if (!/^[A-R]{2}[0-9]{2}([A-X]{2}([0-9]{2})?)?$/.test(g)) return null;
+      const A = "A".charCodeAt(0);
+      let lon = -180.0 + (g.charCodeAt(0) - A) * 20.0 + parseInt(g[2], 10) * 2.0;
+      let lat = -90.0 + (g.charCodeAt(1) - A) * 10.0 + parseInt(g[3], 10) * 1.0;
+      let dLon = 2.0, dLat = 1.0;
+      if (g.length >= 6) {
+        dLon = 2.0 / 24.0; dLat = 1.0 / 24.0;
+        lon += (g.charCodeAt(4) - A) * dLon; lat += (g.charCodeAt(5) - A) * dLat;
+      }
+      if (g.length === 8) {
+        dLon = 2.0 / 240.0; dLat = 1.0 / 240.0;
+        lon += parseInt(g[6], 10) * dLon; lat += parseInt(g[7], 10) * dLat;
+      }
+      return { lat: lat + dLat / 2.0, lon: lon + dLon / 2.0 };
+    }
+
+    function compassSector(deg) {
+      const dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+      return dirs[Math.round(deg / 22.5) % 16];
+    }
+
+    function formatUntil(targetMs, nowMs) {
+      const diffSec = Math.round((targetMs - nowMs) / 1000);
+      if (diffSec <= 0) return "ΕΝΕΡΓΟ ΤΩΡΑ";
+      const mins = Math.floor(diffSec / 60);
+      const hrs = Math.floor(mins / 60);
+      const remMins = mins % 60;
+      if (hrs > 0) return `σε ${hrs}h ${remMins}m`;
+      if (mins > 0) return `σε ${mins}m`;
+      return `σε ${diffSec}s`;
+    }
+
+    function propagateAnalytical(sat, dt) {
+      if (sat.isGeostationary) {
+        return { lat: 0.0, lon: sat.geoLon ?? 25.9, altKm: 35786 };
+      }
+      const o = sat.orbit;
+      const toRad = (d) => (d * Math.PI) / 180.0;
+      const toDeg = (r) => (r * 180.0) / Math.PI;
+      const days = dt.getTime() / 86400000.0;
+
+      const u = toRad((o.phase0 + o.revsPerDay * 360.0 * days) % 360.0);
+      const inc = toRad(o.incDeg);
+      const lat = toDeg(Math.asin(Math.sin(inc) * Math.sin(u)));
+
+      const nodeLon = o.raan0 - 360.985647 * days - 2.2 * days;
+      const dLonOrb = toDeg(Math.atan2(Math.cos(inc) * Math.sin(u), Math.cos(u)));
+      let lon = (nodeLon + dLonOrb) % 360.0;
+      if (lon > 180) lon -= 360;
+      if (lon < -180) lon += 360;
+
+      return { lat, lon, altKm: o.altKm };
+    }
+
+    function propagateSat(satObj, dt) {
+      if (window.satellite && satObj.tle && satObj.tle.length >= 2) {
+        try {
+          const satrec = window.satellite.twoline2satrec(satObj.tle[0], satObj.tle[1]);
+          const pv = window.satellite.propagate(satrec, dt);
+          if (pv && pv.position && typeof pv.position.x === "number") {
+            const gmst = window.satellite.gstime(dt);
+            const geo = window.satellite.eciGeodetic(pv.position, gmst);
+            const lat = window.satellite.degreesLat(geo.latitude);
+            const lon = window.satellite.degreesLong(geo.longitude);
+            const altKm = geo.height;
+            if (Number.isFinite(lat) && Number.isFinite(lon) && Number.isFinite(altKm)) {
+              usingFallbackEngine = false;
+              return { lat, lon, altKm };
+            }
+          }
+        } catch (_e) {
+          // Fall through to analytical propagator
+        }
+      }
+      usingFallbackEngine = true;
+      return propagateAnalytical(satObj, dt);
+    }
+
+    function computeLookAngles(qLat, qLon, qAltKm, sLat, sLon, sAltKm) {
+      const toRad = (d) => (d * Math.PI) / 180.0;
+      const toDeg = (r) => (r * 180.0) / Math.PI;
+      const p1 = toRad(qLat), p2 = toRad(sLat), dl = toRad(sLon - qLon);
+      const cosPsi = Math.max(-1, Math.min(1,
+        Math.sin(p1) * Math.sin(p2) + Math.cos(p1) * Math.cos(p2) * Math.cos(dl)
+      ));
+      const psi = Math.acos(cosPsi);
+      const groundDistKm = EARTH_RADIUS_KM * psi;
+      const y = Math.sin(dl) * Math.cos(p2);
+      const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+      const azimuthDeg = (toDeg(Math.atan2(y, x)) + 360.0) % 360.0;
+      const rObs = EARTH_RADIUS_KM + qAltKm;
+      const rSat = EARTH_RADIUS_KM + sAltKm;
+      const slantRangeKm = Math.sqrt(rObs * rObs + rSat * rSat - 2 * rObs * rSat * cosPsi);
+      const sinEl = Math.max(-1, Math.min(1, (rSat * cosPsi - rObs) / slantRangeKm));
+      const elevationDeg = toDeg(Math.asin(sinEl));
+      return { azimuthDeg, elevationDeg, slantRangeKm, groundDistKm };
+    }
+
+    function computeDopplerShift(satObj, now, qLat, qLon, qAltKm, currentRangeKm, dnMhz) {
+      if (satObj.isGeostationary) {
+        return { rangeRateKmS: 0, deltaKhz: 0, rxMhz: dnMhz };
+      }
+      const dtSec = 1.0;
+      const posNext = propagateSat(satObj, new Date(now.getTime() + dtSec * 1000));
+      const lookNext = computeLookAngles(qLat, qLon, qAltKm, posNext.lat, posNext.lon, posNext.altKm);
+      const rangeRateKmS = (lookNext.slantRangeKm - currentRangeKm) / dtSec;
+      const deltaMhz = -dnMhz * (rangeRateKmS / SPEED_OF_LIGHT_KM_S);
+      return {
+        rangeRateKmS,
+        deltaKhz: deltaMhz * 1000.0,
+        rxMhz: dnMhz + deltaMhz
+      };
+    }
+
+    function syncSelectDropdown() {
+      if (activeSatSelect.value !== selectedNoradId) {
+        activeSatSelect.value = selectedNoradId;
+      }
+      const satObj = SATELLITES.find((s) => s.noradId === selectedNoradId) || SATELLITES[0];
+      updateActiveFreqBanner(satObj);
+    }
+
+    async function refreshLiveTles() {
+      const pill = document.getElementById("tleStatusPill");
+      let liveCount = 0;
+      await Promise.all(SATELLITES.map(async (sat) => {
+        try {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 3000);
+          const res = await fetch(`https://tle.ivanstanojevic.me/api/tle/${sat.noradId}`, {
+            cache: "no-store",
+            signal: ctrl.signal
+          });
+          clearTimeout(timer);
+          if (res.ok) {
+            const d = await res.json();
+            if (d && d.line1 && d.line2) {
+              sat.tle = [d.line1.trim(), d.line2.trim()];
+              liveCount++;
+            }
+          }
+        } catch (_e) {
+          // Keep current/fallback orbit
+        }
+      }));
+
+      if (liveCount > 0 && window.satellite) {
+        pill.textContent = `Ενεργά ζωντανά TLE (${liveCount}/${SATELLITES.length} δορυφόροι)`;
+      } else if (window.satellite) {
+        pill.textContent = "Ενεργός υπολογισμός τροχιάς (τοπικά στοιχεία)";
+      } else {
+        pill.textContent = "Ενεργός εφεδρικός υπολογιστής τροχιάς (offline/CDN fallback)";
+      }
+      return liveCount > 0;
+    }
+
+    function scan24hPasses() {
+      const thead = document.getElementById("passesMatrixHead");
+      const tbody = document.getElementById("passesMatrixBody");
+      const summaryEl = document.getElementById("listSummary");
+      const pill = document.getElementById("tleStatusPill");
+
+      if (!window.satellite) {
+        pill.textContent = "Αδυναμία φόρτωσης satellite.js — ενεργός εφεδρικός υπολογιστής τροχιάς.";
+      }
+
+      const qLat = Math.max(-90, Math.min(90, numVal(qthLatInput, 37.9838)));
+      const qLon = Math.max(-180, Math.min(180, numVal(qthLonInput, 23.7275)));
+      const qAltKm = Math.max(0, numVal(qthAltInput, 120)) / 1000.0;
+      const minEl = numVal(minElFilter, 0);
+
+      const nowMs = Date.now();
+      const stepMs = 60 * 1000;
+      const horizonMs = 24 * 3600 * 1000;
+      const foundLeo = [];
+      const foundGeo = [];
+
+      for (const sat of SATELLITES) {
+        if (sat.isGeostationary) {
+          const posNow = propagateSat(sat, new Date(nowMs));
+          if (posNow) {
+            const lookNow = computeLookAngles(qLat, qLon, qAltKm, posNow.lat, posNow.lon, posNow.altKm);
+            if (lookNow.elevationDeg >= minEl) {
+              foundGeo.push({
+                noradId: sat.noradId,
+                name: sat.name,
+                group: sat.group,
+                uplink: sat.uplink,
+                downlink: sat.downlink,
+                geoLon: sat.geoLon ?? posNow.lon,
+                isGeo: true,
+                aosMs: nowMs,
+                losMs: nowMs + horizonMs,
+                maxEl: lookNow.elevationDeg,
+                maxAz: lookNow.azimuthDeg
+              });
+            }
+          }
+          continue;
+        }
+
+        let inPass = false;
+        let aosMs = null;
+        let maxEl = -90;
+        let maxAz = 0;
+
+        for (let t = nowMs; t <= nowMs + horizonMs; t += stepMs) {
+          const pos = propagateSat(sat, new Date(t));
+          if (!pos) continue;
+          const look = computeLookAngles(qLat, qLon, qAltKm, pos.lat, pos.lon, pos.altKm);
+
+          if (look.elevationDeg >= 0) {
+            if (!inPass) {
+              inPass = true;
+              aosMs = t;
+              maxEl = look.elevationDeg;
+              maxAz = look.azimuthDeg;
+            } else if (look.elevationDeg > maxEl) {
+              maxEl = look.elevationDeg;
+              maxAz = look.azimuthDeg;
+            }
+          } else if (inPass) {
+            if (maxEl >= minEl) {
+              foundLeo.push({
+                noradId: sat.noradId,
+                name: sat.name,
+                group: sat.group,
+                uplink: sat.uplink,
+                downlink: sat.downlink,
+                isGeo: false,
+                aosMs,
+                losMs: t,
+                maxEl,
+                maxAz
+              });
+            }
+            inPass = false;
+          }
+        }
+        if (inPass && maxEl >= minEl) {
+          foundLeo.push({
+            noradId: sat.noradId,
+            name: sat.name,
+            group: sat.group,
+            uplink: sat.uplink,
+            downlink: sat.downlink,
+            isGeo: false,
+            aosMs,
+            losMs: nowMs + horizonMs,
+            maxEl,
+            maxAz
+          });
+        }
+      }
+
+      if (sortModeSelect.value === "maxEl") {
+        foundLeo.sort((a, b) => b.maxEl - a.maxEl || a.aosMs - b.aosMs);
+        foundGeo.sort((a, b) => b.maxEl - a.maxEl);
+      } else {
+        foundLeo.sort((a, b) => a.aosMs - b.aosMs);
+        foundGeo.sort((a, b) => a.geoLon - b.geoLon);
+      }
+
+      geoStatuses = foundGeo;
+      leoPasses = foundLeo;
+
+      if (!manualSatLock && !showGeoOnly && autoSwitchToggle.checked) {
+        const activeNow = leoPasses.find((p) => nowMs >= p.aosMs && nowMs <= p.losMs);
+        if (activeNow && activeNow.noradId !== selectedNoradId) {
+          selectedNoradId = activeNow.noradId;
+          manualDnOverrideNorad = null;
+          syncSelectDropdown();
+        }
+      }
+
+      renderPassesMatrix(nowMs, summaryEl, thead, tbody);
+    }
+
+    function updateGeoToggleUI() {
+      if (showGeoOnly) {
+        btnToggleGeoMode.classList.add("active");
+        btnToggleGeoMode.textContent = "🔄 Επιστροφή σε Περάσματα LEO/MEO (24h)";
+        listTitleHeading.textContent =
+          "Γεωστατικοί Δορυφόροι (GEO) Ορατοί από το QTH (Σταθερή 24ωρη σκόπευση — Οριζόντια διάταξη)";
+      } else {
+        btnToggleGeoMode.classList.remove("active");
+        btnToggleGeoMode.textContent = `🛰️ Εμφάνιση Μόνο Γεωστατικών GEO (${geoStatuses.length})`;
+        listTitleHeading.textContent =
+          "Δορυφόροι που περνούν από το οπτικό πεδίο του QTH (Επόμενες 24 ώρες — LEO/MEO)";
+      }
+    }
+
+    function renderPassesMatrix(
+      nowMs,
+      summaryEl = document.getElementById("listSummary"),
+      thead = document.getElementById("passesMatrixHead"),
+      tbody = document.getElementById("passesMatrixBody")
+    ) {
+      updateGeoToggleUI();
+
+      const fmtTime = (ms) => new Date(ms).toLocaleTimeString("el-GR", { hour: "2-digit", minute: "2-digit" });
+      const fmtDate = (ms) => new Date(ms).toLocaleDateString("el-GR", { day: "2-digit", month: "2-digit" });
+
+      const activeList = showGeoOnly ? geoStatuses : leoPasses;
+
+      if (!activeList.length) {
+        summaryEl.textContent = showGeoOnly
+          ? "Δεν βρέθηκαν ορατοί γεωστατικοί δορυφόροι με το επιλεγμένο ελάχιστο Elevation."
+          : "Δεν βρέθηκαν περάσματα LEO/MEO με τα τρέχοντα κριτήρια το επόμενο 24ωρο.";
+        thead.innerHTML = "<tr><th class='attr-col'>Στοιχείο</th><th>Αποτέλεσμα</th></tr>";
+        tbody.innerHTML = "<tr><td class='attr-col'>Κατάσταση</td><td>Καμία εγγραφή.</td></tr>";
+        return;
+      }
+
+      const cols = activeList.slice(0, 28);
+      const activeLeoCount = leoPasses.filter((p) => nowMs >= p.aosMs && nowMs <= p.losMs).length;
+      const modeTag = usingFallbackEngine ? " [Fallback]" : "";
+
+      if (showGeoOnly) {
+        summaryEl.textContent =
+          `Προβολή ΜΟΝΟ Γεωστατικών: ${geoStatuses.length} ορατοί GEO δορυφόροι πάνω από την Ελλάδα${modeTag}. Πάτα σε οποιαδήποτε στήλη για Azimuth/Elevation σκόπευσης.`;
+      } else {
+        summaryEl.textContent =
+          `Προβολή LEO/MEO: Βρέθηκαν ${leoPasses.length} περάσματα (εμφάνιση ${cols.length} στηλών οριζόντια, ${activeLeoCount} σε πέρασμα τώρα)${modeTag}. Πάτα σε οποιαδήποτε στήλη δορυφόρου για να επιλέξεις και να κλειδώσεις αυτόν που θέλεις.`;
+      }
+
+      const colMeta = cols.map((p) => {
+        const isNow = p.isGeo || (nowMs >= p.aosMs && nowMs <= p.losMs);
+        const isSoon = !isNow && (p.aosMs - nowMs) <= 15 * 60 * 1000;
+        const tagClass = isNow ? "tag-live" : (isSoon ? "tag-soon" : "tag-later");
+        const statusLabel = p.isGeo ? "ΣΤΑΘΕΡΟ GEO" : (isNow ? "ΠΕΡΝΑΕΙ ΤΩΡΑ" : formatUntil(p.aosMs, nowMs));
+        const aosLabel = p.isGeo ? "Συνεχές (24h)" : `${fmtDate(p.aosMs)} ${fmtTime(p.aosMs)}`;
+        const losLabel = p.isGeo ? "Συνεχές (24h)" : fmtTime(p.losMs);
+        const colClasses = [
+          isNow ? "live-sat-col" : "",
+          p.noradId === selectedNoradId ? "active-sat-col" : ""
+        ].filter(Boolean).join(" ");
+        return { p, tagClass, statusLabel, aosLabel, losLabel, colClasses };
+      });
+
+      thead.innerHTML = `
+        <tr>
+          <th class="attr-col">Δορυφόρος</th>
+          ${colMeta.map((c) => `
+            <th class="${c.colClasses}" data-norad="${c.p.noradId}">
+              <div>${c.p.name}</div>
+              <div style="font-size:0.72rem; font-weight:500; color:var(--muted);">${c.p.group}</div>
+            </th>
+          `).join("")}
+        </tr>
+      `;
+
+      const rowsSpec = [
+        {
+          label: "Κατάσταση / Χρόνος",
+          renderCell: (c) => `<span class="status-tag ${c.tagClass}">${c.statusLabel}</span>`
+        },
+        {
+          label: "Uplink",
+          renderCell: (c) => `<span class="freq-mono">${c.p.uplink}</span>`
+        },
+        {
+          label: "Downlink",
+          renderCell: (c) => `<span class="freq-mono">${c.p.downlink}</span>`
+        },
+        {
+          label: showGeoOnly ? "Τροχιά / Θέση" : "Έναρξη (AOS)",
+          renderCell: (c) => showGeoOnly ? `Γεωστατική (${c.p.geoLon >= 0 ? c.p.geoLon.toFixed(1) + "°E" : Math.abs(c.p.geoLon).toFixed(1) + "°W"})` : c.aosLabel
+        },
+        {
+          label: showGeoOnly ? "Διάρκεια Ορατότητας" : "Λήξη (LOS)",
+          renderCell: (c) => c.losLabel
+        },
+        {
+          label: showGeoOnly ? "Elevation Σκόπευσης" : "Max Elevation",
+          renderCell: (c) => `<strong>${c.p.maxEl.toFixed(1)}°</strong>`
+        },
+        {
+          label: showGeoOnly ? "Azimuth Σκόπευσης" : "Azimuth Κορυφής",
+          renderCell: (c) => `${c.p.maxAz.toFixed(0)}° (${compassSector(c.p.maxAz)})`
+        }
+      ];
+
+      tbody.innerHTML = rowsSpec.map((row) => `
+        <tr>
+          <td class="attr-col">${row.label}</td>
+          ${colMeta.map((c) => `
+            <td class="sat-cell ${c.colClasses}" data-norad="${c.p.noradId}">${row.renderCell(c)}</td>
+          `).join("")}
+        </tr>
+      `).join("");
+
+      document.querySelectorAll("[data-norad]").forEach((el) => {
+        el.addEventListener("click", () => {
+          selectSatelliteManually(el.dataset.norad);
+        });
+      });
+    }
+
+    function tickLive() {
+      const now = new Date();
+      const nowMs = now.getTime();
+      const qLat = Math.max(-90, Math.min(90, numVal(qthLatInput, 37.9838)));
+      const qLon = Math.max(-180, Math.min(180, numVal(qthLonInput, 23.7275)));
+      const qAltKm = Math.max(0, numVal(qthAltInput, 120)) / 1000.0;
+
+      document.getElementById("qthPill").textContent =
+        `QTH (${latLonToGrid(qLat, qLon)}): ${qLat.toFixed(4)}°, ${qLon.toFixed(4)}°`;
+
+      if (!manualSatLock && !showGeoOnly && autoSwitchToggle.checked && leoPasses.length > 0) {
+        const activeNow = leoPasses.find((p) => nowMs >= p.aosMs && nowMs <= p.losMs);
+        if (activeNow && activeNow.noradId !== selectedNoradId) {
+          selectedNoradId = activeNow.noradId;
+          manualDnOverrideNorad = null;
+          syncSelectDropdown();
+        }
+      }
+
+      const satObj = SATELLITES.find((s) => s.noradId === selectedNoradId) || SATELLITES[0];
+      syncSelectDropdown();
+
+      const pos = propagateSat(satObj, now);
+      if (!pos) return;
+
+      const look = computeLookAngles(qLat, qLon, qAltKm, pos.lat, pos.lon, pos.altKm);
+      const dnMhz = Math.max(0.001, numVal(dopplerDnInput, extractDefaultDownlinkMhz(satObj.downlink)));
+      const doppler = computeDopplerShift(satObj, now, qLat, qLon, qAltKm, look.slantRangeKm, dnMhz);
+      const fspl435 = 32.44 + 20.0 * Math.log10(Math.max(1, look.slantRangeKm)) + 20.0 * Math.log10(435.0);
+
+      dopplerRxInput.value = `${doppler.rxMhz.toFixed(4)} MHz`;
+
+      document.getElementById("liveLat").value = `${pos.lat.toFixed(3)}°`;
+      document.getElementById("liveLon").value = `${pos.lon.toFixed(3)}°`;
+      document.getElementById("liveAlt").value = `${pos.altKm.toFixed(0)} km`;
+
+      const nextForSat = leoPasses.find((p) => p.noradId === satObj.noradId && p.losMs >= nowMs);
+      document.getElementById("liveCountdown").value = satObj.isGeostationary
+        ? (look.elevationDeg >= 0 ? `GEO ΟΡΑΤΟ (${look.elevationDeg.toFixed(1)}°)` : "GEO Εκτός ορίζοντα")
+        : (look.elevationDeg >= 0
+          ? `ΕΝΕΡΓΟ (${look.elevationDeg.toFixed(1)}°)`
+          : (nextForSat ? formatUntil(nextForSat.aosMs, nowMs) : "Εκτός ορίζοντα"));
+
+      document.getElementById("azVal").textContent = `${look.azimuthDeg.toFixed(1)}°`;
+      document.getElementById("azSub").textContent = `Τομέας: ${compassSector(look.azimuthDeg)}`;
+      document.getElementById("elVal").textContent = `${look.elevationDeg.toFixed(1)}°`;
+      document.getElementById("elSub").textContent =
+        look.elevationDeg >= 0
+          ? (satObj.isGeostationary ? "Σταθερή γεωστατική σκόπευση" : "Πάνω από τον ορίζοντα (Ζωντανή επαφή)")
+          : "Κάτω από τον ορίζοντα";
+
+      const signDf = doppler.deltaKhz >= 0 ? "+" : "";
+      document.getElementById("dopplerVal").textContent = `${signDf}${doppler.deltaKhz.toFixed(2)} kHz`;
+      document.getElementById("dopplerSub").textContent =
+        `RX: ${doppler.rxMhz.toFixed(4)} MHz | vᵣ: ${doppler.rangeRateKmS.toFixed(2)} km/s`;
+
+      document.getElementById("slantVal").textContent = `${look.slantRangeKm.toFixed(0)} km`;
+      document.getElementById("fsplSub").textContent =
+        `FSPL: ${fspl435.toFixed(1)} dB | Ώρα: ${now.toLocaleTimeString("el-GR")}`;
+
+      document.getElementById("azNeedle").setAttribute("transform", `rotate(${look.azimuthDeg.toFixed(1)} 80 70)`);
+      // Βάση άξονα σταθερά στο (80, 108); για 0° δείχνει αριστερά (12, 108) και ανεβαίνει αριστερόστροφα προς (80, 40) στα 90°
+      const clampedEl = Math.max(0, Math.min(90, look.elevationDeg));
+      const elRad = (clampedEl * Math.PI) / 180.0;
+      const anchorX = 80;
+      const anchorY = 108;
+      const armRadius = 68;
+      const bx = anchorX - armRadius * Math.cos(elRad);
+      const by = anchorY - armRadius * Math.sin(elRad);
+      document.getElementById("elBeam").setAttribute("x1", String(anchorX));
+      document.getElementById("elBeam").setAttribute("y1", String(anchorY));
+      document.getElementById("elBeam").setAttribute("x2", bx.toFixed(1));
+      document.getElementById("elBeam").setAttribute("y2", by.toFixed(1));
+      document.getElementById("elSatDot").setAttribute("cx", bx.toFixed(1));
+      document.getElementById("elSatDot").setAttribute("cy", by.toFixed(1));
+      document.getElementById("elSvgLabel").textContent = `${look.elevationDeg.toFixed(1)}°`;
+
+      const verdictEl = document.getElementById("verdict");
+      verdictEl.className = "verdict";
+      if (look.elevationDeg >= 0) {
+        verdictEl.classList.add("ok");
+        verdictEl.textContent = satObj.isGeostationary
+          ? `ΣΤΑΘΕΡΗ ΣΚΟΠΕΥΣΗ GEO: ${satObj.name} — Azimuth ${look.azimuthDeg.toFixed(1)}° (${compassSector(look.azimuthDeg)}) | El +${look.elevationDeg.toFixed(1)}° | DN: ${satObj.downlink}.`
+          : `ΖΩΝΤΑΝΟ ΠΕΡΑΣΜΑ: ${satObj.name} — Azimuth ${look.azimuthDeg.toFixed(1)}° (${compassSector(look.azimuthDeg)}) | El +${look.elevationDeg.toFixed(1)}° | Doppler ${signDf}${doppler.deltaKhz.toFixed(2)} kHz (RX ${doppler.rxMhz.toFixed(4)} MHz).`;
+      } else {
+        verdictEl.classList.add("mid");
+        const etaText = nextForSat ? `Επόμενο πέρασμα ${formatUntil(nextForSat.aosMs, nowMs)} (Max El ${nextForSat.maxEl.toFixed(1)}°)` : "Δεν υπάρχει πέρασμα αυτή τη στιγμή";
+        verdictEl.textContent =
+          `${satObj.name} κάτω από τον ορίζοντα (${look.elevationDeg.toFixed(1)}°). ${etaText} | Doppler @ ${dnMhz.toFixed(3)} MHz: ${signDf}${doppler.deltaKhz.toFixed(2)} kHz.`;
+      }
+    }
+
+    function startLoop() {
+      if (tickInterval) clearInterval(tickInterval);
+      isLiveRunning = true;
+      document.getElementById("btnToggleLive").textContent = "⏸ Παύση Live";
+      document.getElementById("headerBadge").textContent = "24H RADAR LIVE";
+      tickLive();
+      tickInterval = setInterval(() => {
+        tickLive();
+        renderPassesMatrix(Date.now());
+      }, 2000);
+    }
+
+    function stopLoop() {
+      isLiveRunning = false;
+      if (tickInterval) {
+        clearInterval(tickInterval);
+        tickInterval = null;
+      }
+      document.getElementById("btnToggleLive").textContent = "▶ Συνέχεια Live";
+      document.getElementById("headerBadge").textContent = "PAUSED";
+    }
+
+    btnToggleGeoMode.addEventListener("click", () => {
+      showGeoOnly = !showGeoOnly;
+      manualDnOverrideNorad = null;
+      if (showGeoOnly && geoStatuses.length > 0) {
+        const currentSat = SATELLITES.find((s) => s.noradId === selectedNoradId);
+        if (!currentSat || !currentSat.isGeostationary) {
+          selectedNoradId = geoStatuses[0].noradId;
+        }
+      } else if (!showGeoOnly && leoPasses.length > 0) {
+        const currentSat = SATELLITES.find((s) => s.noradId === selectedNoradId);
+        if (currentSat && currentSat.isGeostationary) {
+          selectedNoradId = leoPasses[0].noradId;
+        }
+      }
+      syncSelectDropdown();
+      tickLive();
+      renderPassesMatrix(Date.now());
+    });
+
+    activeSatSelect.addEventListener("change", () => {
+      selectedNoradId = activeSatSelect.value;
+      manualSatLock = true;
+      manualDnOverrideNorad = null;
+      const chosen = SATELLITES.find((s) => s.noradId === selectedNoradId);
+      if (chosen) {
+        showGeoOnly = Boolean(chosen.isGeostationary);
+      }
+      syncSelectDropdown();
+      tickLive();
+      renderPassesMatrix(Date.now());
+    });
+
+    autoSwitchToggle.addEventListener("change", () => {
+      if (autoSwitchToggle.checked) {
+        manualSatLock = false;
+        scan24hPasses();
+      } else {
+        manualSatLock = true;
+      }
+      const satObj = SATELLITES.find((s) => s.noradId === selectedNoradId) || SATELLITES[0];
+      updateLockNoteUI(satObj);
+      tickLive();
+    });
+
+    dopplerDnInput.addEventListener("input", () => {
+      manualDnOverrideNorad = selectedNoradId;
+      tickLive();
+    });
+
+    document.getElementById("btnPickNext").addEventListener("click", () => {
+      const nowMs = Date.now();
+      showGeoOnly = false;
+      manualSatLock = false;
+      const candidate = leoPasses.find((p) => p.losMs >= nowMs) || leoPasses[0];
+      if (candidate) {
+        selectedNoradId = candidate.noradId;
+        manualDnOverrideNorad = null;
+        syncSelectDropdown();
+        tickLive();
+        renderPassesMatrix(nowMs);
+      }
+    });
+
+    document.getElementById("btnToggleLive").addEventListener("click", () => {
+      if (isLiveRunning) stopLoop();
+      else startLoop();
+    });
+
+    document.getElementById("btnScan24h").addEventListener("click", async () => {
+      await refreshLiveTles();
+      scan24hPasses();
+      tickLive();
+    });
+
+    [minElFilter, sortModeSelect].forEach((el) => {
+      el.addEventListener("change", () => {
+        scan24hPasses();
+        tickLive();
+      });
+    });
+
+    qthGridInput.addEventListener("change", () => {
+      const c = gridToLatLon(qthGridInput.value);
+      if (c) {
+        qthLatInput.value = c.lat.toFixed(4);
+        qthLonInput.value = c.lon.toFixed(4);
+        scan24hPasses();
+        tickLive();
+      }
+    });
+
+    [qthLatInput, qthLonInput, qthAltInput].forEach((el) => {
+      el.addEventListener("input", () => {
+        if (el === qthLatInput || el === qthLonInput) {
+          qthGridInput.value = latLonToGrid(numVal(qthLatInput, 37.98), numVal(qthLonInput, 23.72));
+        }
+        scan24hPasses();
+        tickLive();
+      });
+    });
+
+    document.querySelectorAll("button.chip[data-qth]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        qthGridInput.value = btn.dataset.qth;
+        qthLatInput.value = btn.dataset.lat;
+        qthLonInput.value = btn.dataset.lon;
+        scan24hPasses();
+        tickLive();
+      });
+    });
+
+    document.getElementById("btnGps").addEventListener("click", () => {
+      const pill = document.getElementById("qthPill");
+      if (!navigator.geolocation) {
+        pill.textContent = "Ο browser δεν υποστηρίζει Geolocation.";
+        return;
+      }
+      pill.textContent = "Εντοπισμός τοποθεσίας QTH...";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          qthLatInput.value = lat.toFixed(5);
+          qthLonInput.value = lon.toFixed(5);
+          qthGridInput.value = latLonToGrid(lat, lon);
+          if (typeof pos.coords.altitude === "number" && Number.isFinite(pos.coords.altitude) && pos.coords.altitude >= 0) {
+            qthAltInput.value = Math.round(pos.coords.altitude);
+          }
+          scan24hPasses();
+          tickLive();
+        },
+        (err) => {
+          pill.textContent = (err && err.code === 1)
+            ? "Δεν δόθηκε άδεια τοποθεσίας (ή λείπει allow=\"geolocation\" στο iframe)."
+            : "Αδυναμία εντοπισμού θέσης. Μπορείς να βάλεις συντεταγμένες ή Grid.";
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      );
+    });
+
+    populateGroupedSelect();
+    scan24hPasses();
+    startLoop();
+    refreshLiveTles().then((updated) => {
+      if (updated) {
+        scan24hPasses();
+        tickLive();
+      }
+    });
+  </script>
+</body>
+</html>
